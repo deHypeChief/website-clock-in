@@ -1,0 +1,8 @@
+{
+    "scripts": {
+        "frontend": "cd frontend && bun run dev",
+        "api": "cd api && bun run dev",
+        "admin": "cd admin && bun run dev",
+        "dev": "concurrently \"bun run frontend\" \"bun run api\" \"bun run admin\""
+    }
+}

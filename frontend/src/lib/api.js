@@ -1,0 +1,232 @@
+import axios from 'axios'
+
+// API configuration and helper functions
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // Important for session cookies
+})
+
+// Request interceptor for auth
+api.interceptors.request.use(
+  (config) => {
+    // Add any auth tokens or additional headers if needed
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access
+      localStorage.removeItem('adminAuth')
+      localStorage.removeItem('employeeAuth')
+      localStorage.removeItem('visitorAuth')
+      if (window.location.pathname.startsWith('/admin')) {
+        window.location.href = '/admin/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+// Employee API functions
+export const employeeAPI = {
+  // Sign in employee
+  signIn: async (email, password) => {
+    const response = await api.post('/employees/sign', { email, password })
+    return response.data
+  },
+
+  // Register employee (admin only)
+  register: async (employeeData) => {
+    const response = await api.post('/employees/register', employeeData)
+    return response.data
+  },
+
+  // Get all employees (admin only)
+  getAll: async () => {
+    const response = await api.get('/employees/admin/employees')
+    return response.data
+  },
+
+  // Public list for kiosk/visitor
+  getPublic: async (q) => {
+    const url = q && q.trim() ? `/employees/public?q=${encodeURIComponent(q)}` : '/employees/public'
+    const response = await api.get(url)
+    return response.data
+  },
+
+  // Get employee by ID (admin only)
+  getById: async (id) => {
+    const response = await api.get(`/employees/admin/employees/${id}`)
+    return response.data
+  },
+
+  // Update employee (admin only)
+  update: async (id, data) => {
+    const response = await api.patch(`/employees/admin/employees/${id}`, data)
+    return response.data
+  },
+
+  // Delete employee (admin only)
+  delete: async (id) => {
+    const response = await api.delete(`/employees/admin/employees/${id}`)
+    return response.data
+  }
+}
+
+// Visitor API functions
+export const visitorAPI = {
+  // Register visitor
+  register: async (visitorData) => {
+    const response = await api.post('/visitors/register', visitorData)
+    return response.data
+  },
+
+  // Sign in visitor
+  signIn: async (email, password) => {
+    const response = await api.post('/visitors/sign', { email, password })
+    return response.data
+  },
+
+  // Get all visitors (admin only)
+  getAll: async () => {
+    const response = await api.get('/visitors/admin/visitors')
+    return response.data
+  },
+
+  // Get visitor by ID (admin only)
+  getById: async (id) => {
+    const response = await api.get(`/visitors/admin/visitors/${id}`)
+    return response.data
+  },
+
+  // Update visitor (admin only)
+  update: async (id, data) => {
+    const response = await api.patch(`/visitors/admin/visitors/${id}`, data)
+    return response.data
+  },
+
+  // Delete visitor (admin only)
+  delete: async (id) => {
+    const response = await api.delete(`/visitors/admin/visitors/${id}`)
+    return response.data
+  }
+}
+
+// Attendance API functions
+export const attendanceAPI = {
+  // Employee clock in/out
+  employeeClock: async (action) => {
+    const response = await api.post('/attendance/employee/clock', { action })
+    return response.data
+  },
+  // Employee current status and recent history
+  employeeStatus: async (limit = 20) => {
+    const response = await api.get(`/attendance/employee/status?limit=${encodeURIComponent(limit)}`)
+    return response.data
+  },
+
+  // Visitor clock in/out
+  visitorClock: async (action, hostEmployeeId) => {
+    const response = await api.post('/attendance/visitor/clock', { action, hostEmployeeId })
+    return response.data
+  },
+  // Kiosk visitor clock (no auth) by email/name
+  visitorKioskClock: async ({ email, name, action, hostEmployeeId }) => {
+    const response = await api.post('/attendance/visitor/kiosk-clock', { email, name, action, hostEmployeeId })
+    return response.data
+  },
+  // Visitor status by email
+  visitorStatus: async (email, limit = 10) => {
+    const response = await api.get(`/attendance/visitor/status?email=${encodeURIComponent(email)}&limit=${encodeURIComponent(limit)}`)
+    return response.data
+  },
+
+  // Get attendance records (admin only)
+  getRecords: async (filters = {}) => {
+    const params = new URLSearchParams()
+    if (filters.actorType) params.append('actorType', filters.actorType)
+    if (filters.actorId) params.append('actorId', filters.actorId)
+    if (filters.from) params.append('from', filters.from)
+    if (filters.to) params.append('to', filters.to)
+    
+    const response = await api.get(`/attendance/admin/records?${params}`)
+    return response.data
+  },
+
+  // Get reports (admin only)
+  getReports: async (reportType, filters = {}) => {
+    const params = new URLSearchParams()
+    params.append('type', reportType)
+    Object.keys(filters).forEach(key => {
+      if (filters[key]) params.append(key, filters[key])
+    })
+    
+    const response = await api.get(`/attendance/reports?${params}`)
+    return response.data
+  }
+}
+
+// Admin API functions
+export const adminAPI = {
+  // Sign in admin
+  signIn: async (email, password) => {
+    const response = await api.post('/admins/sign', { email, password })
+    return response.data
+  },
+
+  // Register admin
+  register: async (adminData) => {
+    const response = await api.post('/admins/register?role=admin', adminData)
+    return response.data
+  },
+
+  // Password reset
+  passwordReset: async (email) => {
+    const response = await api.post('/admins/password-reset', { email })
+    return response.data
+  },
+
+  // Password change
+  passwordChange: async (currentPassword, newPassword) => {
+    const response = await api.post('/admins/password-change', { currentPassword, newPassword })
+    return response.data
+  }
+}
+
+// Auth API functions
+export const authAPI = {
+  // Get auth status
+  getStatus: async () => {
+    const response = await api.get('/auth/status')
+    return response.data
+  },
+
+  // Get sessions
+  getSessions: async () => {
+    const response = await api.get('/auth/sessions')
+    return response.data
+  },
+
+  // Logout
+  logout: async () => {
+    const response = await api.post('/auth/logout')
+    return response.data
+  }
+}
+
+export default api

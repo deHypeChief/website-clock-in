@@ -1,0 +1,49 @@
+{
+  "name": "api",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "bun test",
+    "start": "bun run build/index.js",
+    "build-render": "bun install && bun run build",
+    "build": "bun build ./src/index.ts --outdir ./build --target bun",
+    "dev": "bun run --watch src/index.ts",
+    "email-dev": "email dev --dir ./src/emails --port 8001",
+    "docker-build": "docker build -t lodgify-api .",
+    "scrape:test": "bun test test/instagram.test.ts --timeout=35000",
+    "seed": "bun run src/seed/seed.ts"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.2.0",
+    "@elysiajs/cron": "^1.3.0",
+    "@elysiajs/jwt": "^1.1.1",
+    "@elysiajs/static": "^1.2.0",
+    "@elysiajs/swagger": "^1.1.6",
+    "@react-email/components": "^0.0.32",
+    "@react-email/render": "1.0.4",
+    "@types/bun": "^1.2.16",
+    "@types/nodemailer": "^6.4.17",
+    "@types/passport": "^1.0.17",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.3",
+    "axios": "^1.7.9",
+    "better-auth": "^1.2.9",
+    "chalk": "^5.4.0",
+    "cloudinary": "^2.5.1",
+    "elysia": "latest",
+    "googleapis": "^152.0.0",
+    "mongoose": "^8.9.2",
+    "multiparty": "^4.2.3",
+    "nodemailer": "^6.9.16",
+    "ora": "^8.1.1",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.4",
+    "qs": "^6.14.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-email": "^4.0.7"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "module": "src/index.js"
+}
