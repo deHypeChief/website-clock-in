@@ -107,32 +107,32 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-md mx-auto px-4">
       {/* Header */}
-      <div className="mb-8">
+  <div className="mb-6 sm:mb-8">
         <Link 
           to="/" 
-          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 sm:mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Link>
         
         <div className="text-center">
-          <div className="bg-blue-100 p-4 rounded-full w-fit mx-auto mb-6">
-            <Lock className="h-12 w-12 text-blue-600" />
+          <div className="bg-blue-100 p-3 sm:p-4 rounded-full w-fit mx-auto mb-5 sm:mb-6">
+            <Lock className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
             Admin Login
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Access the admin dashboard to manage employees and attendance records.
           </p>
         </div>
       </div>
 
       {/* Login Form */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+      <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 border border-gray-200">
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
@@ -149,14 +149,14 @@ export default function AdminLogin() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+  <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="email"
                 id="email"
@@ -164,7 +164,7 @@ export default function AdminLogin() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 placeholder="Enter your email"
               />
             </div>
@@ -176,7 +176,7 @@ export default function AdminLogin() {
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
@@ -184,13 +184,13 @@ export default function AdminLogin() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                 placeholder="Enter your password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -241,7 +241,7 @@ export default function AdminLogin() {
       </div>
 
       {/* Registration Link */}
-      <div className="mt-6 text-center">
+  <div className="mt-6 text-center">
         <p className="text-gray-600">
           Don't have an admin account?{' '}
           <Link to="/admin/register" className="text-blue-600 hover:text-blue-800 font-medium">

@@ -15,23 +15,25 @@ html, body {
   flex-direction: column;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* Hide all scrollbars globally (while keeping scroll functional) */
+/* Firefox */
+* {
+  -ms-overflow-style: none; /* IE and old Edge */
+  scrollbar-width: none;    /* Firefox */
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+/* WebKit (Chrome, Safari, new Edge, Opera) */
+*::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+*::-webkit-scrollbar-thumb {
+  background: transparent !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+*::-webkit-scrollbar-track {
+  background: transparent !important;
 }
 
 /* Focus ring improvements */

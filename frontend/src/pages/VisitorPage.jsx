@@ -159,9 +159,9 @@ export default function VisitorPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4">
       {/* Header */}
-  <div className="mb-8">
+  <div className="mb-6 sm:mb-8">
         <Link 
           to="/" 
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
@@ -169,35 +169,35 @@ export default function VisitorPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
           Visitor Check In/Out
         </h1>
-        <p className="text-gray-600">
+  <p className="text-gray-600 text-sm sm:text-base">
           Register as a visitor and log your visit details.
         </p>
       </div>
 
       {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center space-x-8">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
           {[
             { number: 1, title: 'Visitor Info', active: step >= 1 },
             { number: 2, title: 'Select Host', active: step >= 2 },
             { number: 3, title: 'Clock In/Out', active: step >= 3 }
           ].map((stepItem, index) => (
             <div key={index} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
+              <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-semibold ${
                 stepItem.active ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
               }`}>
                 {stepItem.number}
               </div>
-              <span className={`ml-2 text-sm font-medium ${
+              <span className={`ml-2 text-xs sm:text-sm font-medium ${
                 stepItem.active ? 'text-blue-600' : 'text-gray-500'
               }`}>
                 {stepItem.title}
               </span>
               {index < 2 && (
-                <div className={`w-16 h-1 mx-4 ${
+                <div className={`w-10 sm:w-16 h-1 mx-3 sm:mx-4 ${
                   step > stepItem.number ? 'bg-blue-600' : 'bg-gray-300'
                 }`} />
               )}
@@ -208,24 +208,24 @@ export default function VisitorPage() {
 
       {/* Step 1: Visitor Information */}
       {step === 1 && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">
             Enter Your Information
           </h2>
           <form onSubmit={handleVisitorInfoSubmit}>
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-5 sm:mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name *
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
                     required
                     value={visitorInfo.name}
                     onChange={(e) => setVisitorInfo(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -235,13 +235,13 @@ export default function VisitorPage() {
                   Email *
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="email"
                     required
                     value={visitorInfo.email}
                     onChange={(e) => setVisitorInfo(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     placeholder="Enter your email"
                   />
                 </div>
@@ -251,12 +251,12 @@ export default function VisitorPage() {
                   Phone Number (Optional)
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="tel"
                     value={visitorInfo.phone}
                     onChange={(e) => setVisitorInfo(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     placeholder="Enter your phone number"
                   />
                 </div>
@@ -264,7 +264,7 @@ export default function VisitorPage() {
             </div>
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-5 sm:px-6 rounded-lg font-semibold transition-colors"
             >
               Continue
             </button>
@@ -274,8 +274,8 @@ export default function VisitorPage() {
 
       {/* Step 2: Select Host Employee */}
       {step === 2 && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               Who are you visiting?
             </h2>
@@ -295,13 +295,13 @@ export default function VisitorPage() {
           </div>
 
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search for the employee you're meeting..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg"
             />
           </div>
 
@@ -345,8 +345,8 @@ export default function VisitorPage() {
 
       {/* Step 3: Clock Actions */}
       {step === 3 && selectedHost && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               Visit Summary
             </h2>
@@ -359,7 +359,7 @@ export default function VisitorPage() {
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">Visitor Information</h3>
                 <p className="text-gray-700">{visitorInfo.name}</p>
@@ -378,17 +378,17 @@ export default function VisitorPage() {
           </div>
 
           {/* Clock Actions */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <button
         onClick={() => handleClockAction('IN')}
         disabled={loading || isRegistered}
-              className={`flex items-center justify-center space-x-2 py-4 px-6 rounded-lg text-lg font-semibold transition-colors ${
+              className={`flex items-center justify-center space-x-2 py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors ${
                 isRegistered 
                   ? 'bg-green-100 text-green-800 border-2 border-green-300' 
                   : 'bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white'
               }`}
             >
-              <Clock className="h-6 w-6" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               <span>
                 {isRegistered ? 'Checked In ✓' : loading ? 'Processing...' : 'Clock In'}
               </span>
@@ -396,14 +396,14 @@ export default function VisitorPage() {
             <button
               onClick={() => handleClockAction('OUT')}
         disabled={loading || !isRegistered}
-              className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-4 px-6 rounded-lg text-lg font-semibold transition-colors"
+              className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors"
             >
-              <Clock className="h-6 w-6" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               <span>{loading ? 'Processing...' : 'Clock Out'}</span>
             </button>
           </div>
 
-          <div className="mt-4 text-center text-sm text-gray-500">
+          <div className="mt-4 text-center text-xs sm:text-sm text-gray-500">
             Current time: {new Date().toLocaleString()}
           </div>
         </div>
@@ -411,7 +411,7 @@ export default function VisitorPage() {
 
       {/* Success/Error Messages */}
       {message.text && (
-        <div className={`rounded-lg p-4 mb-8 ${
+        <div className={`rounded-lg p-4 mb-6 sm:mb-8 ${
           message.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
         }`}>
           <div className="flex items-center">
@@ -420,7 +420,7 @@ export default function VisitorPage() {
             ) : (
               <XCircle className="h-5 w-5 text-red-600 mr-2" />
             )}
-            <p className={`${
+            <p className={`text-sm ${
               message.type === 'success' ? 'text-green-800' : 'text-red-800'
             }`}>
               {message.text}
@@ -430,11 +430,11 @@ export default function VisitorPage() {
       )}
 
       {/* Instructions */}
-      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">
+      <div className="bg-blue-50 rounded-xl p-5 sm:p-6 border border-blue-200">
+        <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-2 sm:mb-3">
           Visitor Instructions
         </h3>
-        <ol className="list-decimal list-inside space-y-2 text-blue-800">
+        <ol className="list-decimal list-inside space-y-2 text-blue-800 text-sm">
           <li>Enter your name and email</li>
           <li>Search and select the employee you're visiting</li>
           <li>If you’ve checked in before and haven’t clocked out, you’ll see Clock Out enabled</li>

@@ -153,7 +153,7 @@ export default function EmployeePage() {
   }
 
   const SelfHeader = () => (
-    <div className="mb-8">
+    <div className="mb-6 sm:mb-8">
       <Link 
         to="/" 
         className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
@@ -161,10 +161,10 @@ export default function EmployeePage() {
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Home
       </Link>
-      <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Attendance</h1>
-          <p className="text-gray-600">View your info, recent clock activity, and quickly clock in or out.</p>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">My Attendance</h1>
+      <p className="text-gray-600 text-sm sm:text-base">View your info, recent clock activity, and quickly clock in or out.</p>
         </div>
         <button
           onClick={handleLogout}
@@ -178,7 +178,7 @@ export default function EmployeePage() {
   )
 
   const PublicHeader = () => (
-    <div className="mb-8">
+    <div className="mb-6 sm:mb-8">
       <Link 
         to="/" 
         className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
@@ -186,29 +186,29 @@ export default function EmployeePage() {
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Home
       </Link>
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
         Employee Clock In/Out
       </h1>
-      <p className="text-gray-600">
+  <p className="text-gray-600 text-sm sm:text-base">
         Search for your name and clock in or out with a single click.
       </p>
     </div>
   )
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4">
       {/* Header */}
       {me ? <SelfHeader /> : <PublicHeader />}
 
       {/* Self mode: show profile and quick actions */}
       {me && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-1">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
                 {me?.sessionClientId?.fullName || 'Employee'}
               </h2>
-              <p className="text-gray-600">{me?.employeeId} • {me?.department} • {me?.title}</p>
+              <p className="text-gray-600 text-sm">{me?.employeeId} • {me?.department} • {me?.title}</p>
             </div>
             <div className="text-sm">
               {status.currentlyClockedIn ? (
@@ -219,32 +219,32 @@ export default function EmployeePage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <button
               onClick={() => handleClockAction('IN')}
               disabled={loading || status.currentlyClockedIn}
-              className={`flex items-center justify-center space-x-2 py-4 px-6 rounded-lg text-lg font-semibold transition-colors text-white ${
+              className={`flex items-center justify-center space-x-2 py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors text-white ${
                 loading || status.currentlyClockedIn ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              <Clock className="h-6 w-6" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               <span>{loading ? 'Processing...' : 'Clock In'}</span>
             </button>
             <button
               onClick={() => handleClockAction('OUT')}
               disabled={loading || !status.currentlyClockedIn}
-              className={`flex items-center justify-center space-x-2 py-4 px-6 rounded-lg text-lg font-semibold transition-colors text-white ${
+              className={`flex items-center justify-center space-x-2 py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors text-white ${
                 loading || !status.currentlyClockedIn ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
               }`}
             >
-              <Clock className="h-6 w-6" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               <span>{loading ? 'Processing...' : 'Clock Out'}</span>
             </button>
           </div>
 
           {/* Recent history */}
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Activity</h3>
+          <div className="mt-6 sm:mt-8">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Recent Activity</h3>
             {status.recentRecords && status.recentRecords.length > 0 ? (
               <div className="bg-gray-50 rounded-lg divide-y">
                 {status.recentRecords.slice(0, 10).map((r) => (
@@ -270,15 +270,15 @@ export default function EmployeePage() {
 
       {/* Public search Section (only when not logged in) */}
       {!me && (
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search by name, employee ID, or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg"
           />
         </div>
 
@@ -328,13 +328,13 @@ export default function EmployeePage() {
 
       {/* Selected Employee */}
   {!me && selectedEmployee && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-1">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
                 Selected Employee
               </h2>
-              <p className="text-gray-600">Ready to clock in or out</p>
+              <p className="text-gray-600 text-sm">Ready to clock in or out</p>
             </div>
             <button
               onClick={() => setSelectedEmployee(null)}
@@ -345,10 +345,10 @@ export default function EmployeePage() {
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
               {selectedEmployee.sessionClientId.fullName}
             </h3>
-            <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 text-sm text-gray-600">
               <div>
                 <span className="font-medium">Employee ID:</span> {selectedEmployee.employeeId}
               </div>
@@ -362,26 +362,26 @@ export default function EmployeePage() {
           </div>
 
           {/* Clock Actions */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <button
               onClick={() => handleClockAction('IN')}
               disabled={loading}
-              className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-4 px-6 rounded-lg text-lg font-semibold transition-colors"
+              className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors"
             >
-              <Clock className="h-6 w-6" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               <span>{loading ? 'Processing...' : 'Clock In'}</span>
             </button>
             <button
               onClick={() => handleClockAction('OUT')}
               disabled={loading}
-              className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-4 px-6 rounded-lg text-lg font-semibold transition-colors"
+              className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors"
             >
-              <Clock className="h-6 w-6" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               <span>{loading ? 'Processing...' : 'Clock Out'}</span>
             </button>
           </div>
 
-          <div className="mt-4 text-center text-sm text-gray-500">
+          <div className="mt-4 text-center text-xs sm:text-sm text-gray-500">
             Current time: {new Date().toLocaleString()}
           </div>
         </div>
@@ -389,7 +389,7 @@ export default function EmployeePage() {
 
       {/* Success/Error Messages */}
       {message.text && (
-        <div className={`rounded-lg p-4 mb-8 ${
+        <div className={`rounded-lg p-4 mb-6 sm:mb-8 ${
           message.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
         }`}>
           <div className="flex items-center">
@@ -398,7 +398,7 @@ export default function EmployeePage() {
             ) : (
               <XCircle className="h-5 w-5 text-red-600 mr-2" />
             )}
-            <p className={`${
+            <p className={`text-sm ${
               message.type === 'success' ? 'text-green-800' : 'text-red-800'
             }`}>
               {message.text}
@@ -408,17 +408,17 @@ export default function EmployeePage() {
       )}
 
       {/* Instructions */}
-      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">
+      <div className="bg-blue-50 rounded-xl p-5 sm:p-6 border border-blue-200">
+        <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-2 sm:mb-3">
           {me ? 'Tips' : 'How to Use'}
         </h3>
         {me ? (
-          <ul className="list-disc list-inside space-y-2 text-blue-800">
+          <ul className="list-disc list-inside space-y-2 text-blue-800 text-sm">
             <li>If you’re already clocked in, the Clock Out button will be enabled for a quick checkout.</li>
             <li>Use the Back button to navigate home. Your session stays active unless you log out.</li>
           </ul>
         ) : (
-          <ol className="list-decimal list-inside space-y-2 text-blue-800">
+          <ol className="list-decimal list-inside space-y-2 text-blue-800 text-sm">
             <li>Search for your name in the search box above</li>
             <li>Click on your name from the search results</li>
             <li>Click "Clock In" when you arrive or "Clock Out" when you leave</li>
