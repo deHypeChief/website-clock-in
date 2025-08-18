@@ -38,6 +38,14 @@ export default function ProtectedRoute({ children, requireAuth = 'admin' }) {
 
         setIsLoading(false)
       } catch (error) {
+        // Treat 401 as normal unauthenticated state (not an error)
+        const status = error?.response?.status
+        if (status === 401) {
+          setIsAuthenticated(false)
+          setAuthError('')
+          setIsLoading(false)
+          return
+        }
         console.error('Auth check failed:', error)
         setAuthError('Authentication verification failed')
         setIsAuthenticated(false)
