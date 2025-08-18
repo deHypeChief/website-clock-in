@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { Shield, AlertTriangle } from 'lucide-react'
+import { authAPI } from '../lib/api'
 
 export default function ProtectedRoute({ children, requireAuth = 'admin' }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -11,29 +12,27 @@ export default function ProtectedRoute({ children, requireAuth = 'admin' }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check localStorage first for quick auth check
-        const localAuth = localStorage.getItem(`${requireAuth}Auth`)
-        
-        if (!localAuth) {
-          setIsAuthenticated(false)
-          setIsLoading(false)
-          return
-        }
+        // Always verify with server first
+        let status
+        if (requireAuth === 'admin') status = await authAPI.getAdminStatus()
+        else if (requireAuth === 'employee') status = await authAPI.getEmployeeStatus()
+        else if (requireAuth === 'visitor') status = await authAPI.getVisitorStatus()
 
-        // For admin, just check if the key exists and is 'true'
-        if (requireAuth === 'admin' && localAuth === 'true') {
+        if (status?.success && status?.data?.isAuthenticated) {
           setIsAuthenticated(true)
-        } 
-        // For employee/visitor, check if valid JSON data exists
-        else if (requireAuth !== 'admin') {
-          try {
-            const authData = JSON.parse(localAuth)
-            if (authData && (authData.id || authData.email)) {
-              setIsAuthenticated(true)
+          // Set a lightweight hint for smoother UX; cookies remain the source of truth
+          localStorage.setItem(`${requireAuth}Auth`, requireAuth === 'admin' ? 'true' : JSON.stringify(status.data[requireAuth]))
+        } else {
+          // Fallback: attempt to use localStorage only if present (best-effort)
+          const localAuth = localStorage.getItem(`${requireAuth}Auth`)
+          if (requireAuth === 'admin' && localAuth === 'true') setIsAuthenticated(true)
+          else if (requireAuth !== 'admin' && localAuth) {
+            try {
+              const authData = JSON.parse(localAuth)
+              if (authData && (authData.id || authData.email)) setIsAuthenticated(true)
+            } catch {
+              // ignore parse errors for optional localStorage fallback
             }
-          } catch (parseError) {
-            console.error('Failed to parse auth data:', parseError)
-            setAuthError('Invalid authentication data')
           }
         }
 

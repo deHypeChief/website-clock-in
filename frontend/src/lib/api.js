@@ -34,7 +34,10 @@ api.interceptors.response.use(
       localStorage.removeItem('adminAuth')
       localStorage.removeItem('employeeAuth')
       localStorage.removeItem('visitorAuth')
-      if (window.location.pathname.startsWith('/admin')) {
+      const path = window.location.pathname
+      // Avoid redirect loop if already on login/register pages
+      const isAdminAuthPage = path === '/admin/login' || path === '/admin/register'
+      if (path.startsWith('/admin') && !isAdminAuthPage) {
         window.location.href = '/admin/login'
       }
     }
@@ -211,8 +214,16 @@ export const adminAPI = {
 // Auth API functions
 export const authAPI = {
   // Get auth status
-  getStatus: async () => {
-    const response = await api.get('/auth/status')
+  getAdminStatus: async () => {
+    const response = await api.get('/auth/status/admin')
+    return response.data
+  },
+  getEmployeeStatus: async () => {
+    const response = await api.get('/auth/status/employee')
+    return response.data
+  },
+  getVisitorStatus: async () => {
+    const response = await api.get('/auth/status/visitor')
     return response.data
   },
 
@@ -224,7 +235,8 @@ export const authAPI = {
 
   // Logout
   logout: async () => {
-    const response = await api.post('/auth/logout')
+    // Backend defines logout as GET /auth/logout
+    const response = await api.get('/auth/logout')
     return response.data
   }
 }

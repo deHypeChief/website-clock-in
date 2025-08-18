@@ -6,11 +6,7 @@
     "start": "bun run build/index.js",
     "build-render": "bun install && bun run build",
     "build": "bun build ./src/index.ts --outdir ./build --target bun",
-    "dev": "bun run --watch src/index.ts",
-    "email-dev": "email dev --dir ./src/emails --port 8001",
-    "docker-build": "docker build -t lodgify-api .",
-    "scrape:test": "bun test test/instagram.test.ts --timeout=35000",
-    "seed": "bun run src/seed/seed.ts"
+    "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.2.0",

@@ -12,7 +12,8 @@ export const SessionAuthConfig = {
             maxAge: 15 * 60 * 1000, // 15 minutes
             path: "/",
             secure: isProduction,
-            sameSite: "lax"
+            // Use SameSite=None in production so cookies are sent on cross-site XHR/fetch
+            sameSite: isProduction ? "none" : "lax"
         } as CookieOptions,
     },
     refreshToken: {
@@ -24,7 +25,7 @@ export const SessionAuthConfig = {
             maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
             path: "/",
             secure: isProduction,
-            sameSite: "lax"
+            sameSite: isProduction ? "none" : "lax"
         } as CookieOptions,
     },
 }

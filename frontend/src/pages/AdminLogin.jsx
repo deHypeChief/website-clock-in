@@ -18,19 +18,17 @@ export default function AdminLogin() {
   // Check if already authenticated
   useEffect(() => {
     const checkExistingAuth = async () => {
-      const existingAuth = localStorage.getItem('adminAuth')
-      if (existingAuth === 'true') {
-        try {
-          // Verify the auth is still valid with the server
-          const statusResponse = await authAPI.getStatus()
-          if (statusResponse.success) {
-            navigate(from, { replace: true })
-            return
-          }
-        } catch {
-          // If auth check fails, clear invalid auth
-          localStorage.removeItem('adminAuth')
+      try {
+        const statusResponse = await authAPI.getAdminStatus()
+        if (statusResponse?.success && statusResponse?.data?.isAuthenticated) {
+          // Keep a lightweight hint for UX only; server remains source of truth
+          localStorage.setItem('adminAuth', 'true')
+          navigate(from, { replace: true })
+          return
         }
+      } catch {
+        // Ignore; user not authenticated on server
+        localStorage.removeItem('adminAuth')
       }
     }
 
@@ -58,12 +56,12 @@ export default function AdminLogin() {
     }
 
     try {
-      const response = await adminAPI.signIn(formData.email, formData.password)
+  const response = await adminAPI.signIn(formData.email, formData.password)
       
       if (response.success) {
-        // Store auth info
-        localStorage.setItem('adminAuth', 'true')
-        
+  // Optional UX hint; server session cookie is the source of truth
+  localStorage.setItem('adminAuth', 'true')
+
         // Store additional user info if provided
         if (response.admin) {
           localStorage.setItem('adminInfo', JSON.stringify(response.admin))
