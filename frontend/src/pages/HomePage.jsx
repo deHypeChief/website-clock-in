@@ -15,7 +15,7 @@ export default function HomePage() {
 
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Welcome to GraceOnly Smart Attendance
+                    BUILD ON TRUST, STRENGHTENED BY INTEGRITY
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                     Efficiently track employee attendance and visitor check-ins with our
