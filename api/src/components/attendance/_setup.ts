@@ -6,7 +6,11 @@ export const AttendanceValidator = {
         detail: { tags: ['Attendance'] }
     },
     visitorClock: {
-        body: t.Object({ action: t.Enum({ IN: 'IN', OUT: 'OUT' }), hostEmployeeId: t.String() }),
+        body: t.Object({ 
+            action: t.Enum({ IN: 'IN', OUT: 'OUT' }), 
+            hostEmployeeId: t.Optional(t.String()),
+            visitType: t.Optional(t.Enum({ regular: 'regular', inspection: 'inspection' }))
+        }),
         detail: { tags: ['Attendance'] }
     },
     adminQuery: {

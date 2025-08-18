@@ -10,13 +10,18 @@ import { SessionClient } from "../../auth/_model";
 const visitorKioskClock = new Elysia({ prefix: "/visitor" })
   .post("/kiosk-clock", async ({ set, body }) => {
     try {
-      const { email, name, action, hostEmployeeId } = body as any;
-      if (!email || !name || !action || !hostEmployeeId) {
+      const { email, name, action, hostEmployeeId, visitType } = body as any;
+      if (!email || !name || !action) {
         return ErrorHandler.ValidationError(set, "Missing required fields");
       }
 
-      const host = await Employee.findById(hostEmployeeId);
-      if (!host) return ErrorHandler.ValidationError(set, "Host employee not found");
+      let host: any = null;
+      const isInspection = visitType === 'inspection';
+      if (!isInspection) {
+        if (!hostEmployeeId) return ErrorHandler.ValidationError(set, "Host employee is required for regular visits");
+        host = await Employee.findById(hostEmployeeId);
+        if (!host) return ErrorHandler.ValidationError(set, "Host employee not found");
+      }
 
       let client = await SessionClient.findOne({ email });
       if (!client) {
@@ -38,7 +43,8 @@ const visitorKioskClock = new Elysia({ prefix: "/visitor" })
       const record = await Attendance.create({
         actorType: 'visitor',
         actorId: visitor._id,
-        hostEmployeeId: host._id,
+        hostEmployeeId: host?._id,
+        visitType: isInspection ? 'inspection' : 'regular',
         action,
         timestamp: new Date()
       });

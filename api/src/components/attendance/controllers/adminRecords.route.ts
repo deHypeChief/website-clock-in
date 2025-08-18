@@ -6,6 +6,7 @@ import { AttendanceValidator } from "../_setup";
 import { isSessionAuth } from "../../../middleware/authSession.middleware";
 import { Employee } from "../../employees/_model";
 import { Visitor } from "../../visitors/_model";
+import { SessionClient } from "../../auth/_model";
 
 const adminRecords = new Elysia({ prefix: "/admin" })
     .use(isSessionAuth("admin"))
@@ -70,5 +71,41 @@ const adminRecords = new Elysia({ prefix: "/admin" })
             return ErrorHandler.ServerError(set, "Error fetching attendance records", error)
         }
     }, AttendanceValidator.adminQuery)
+    .post('/visitor/force-clock-out', async ({ set, body }) => {
+        try {
+            const { actorId, email, visitType } = (body || {}) as any;
+            let visitorId = actorId;
+            if (!visitorId && email) {
+                const client = await SessionClient.findOne({ email }).lean();
+                if (client) {
+                    const visitor = await Visitor.findOne({ sessionClientId: client._id }).lean();
+                    if (visitor) visitorId = String(visitor._id);
+                }
+            }
+            if (!visitorId) return ErrorHandler.ValidationError(set, 'Visitor identifier required');
+
+            // Check last action to ensure currently IN
+            const match: any = { actorType: 'visitor', actorId: visitorId };
+            if (visitType === 'inspection' || visitType === 'regular') match.visitType = visitType;
+            const last = await Attendance.findOne(match)
+                .sort({ timestamp: -1 })
+                .lean();
+            if (!last || last.action !== 'IN') {
+                return ErrorHandler.ValidationError(set, 'Visitor is not currently clocked in');
+            }
+
+            const outRecord = await Attendance.create({
+                actorType: 'visitor',
+                actorId: visitorId,
+                action: 'OUT',
+                timestamp: new Date(),
+                hostEmployeeId: last.hostEmployeeId,
+                visitType: last.visitType || 'regular'
+            });
+            return SuccessHandler(set, 'Visitor clocked out by admin', outRecord, true);
+        } catch (error) {
+            return ErrorHandler.ServerError(set, 'Error force clocking out visitor', error);
+        }
+    })
 
 export default adminRecords

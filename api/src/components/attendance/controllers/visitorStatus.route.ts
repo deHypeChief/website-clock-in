@@ -9,7 +9,7 @@ import { Visitor } from "../../visitors/_model";
 const visitorStatus = new Elysia({ prefix: "/visitor" })
 	.get("/status", async ({ set, query }) => {
 		try {
-			const { email, limit } = (query || {}) as any;
+			const { email, limit, visitType } = (query || {}) as any;
 			if (!email || typeof email !== 'string') {
 				return ErrorHandler.ValidationError(set, "Email is required");
 			}
@@ -28,7 +28,11 @@ const visitorStatus = new Elysia({ prefix: "/visitor" })
 					recentRecords: []
 				});
 			}
-			const records = await Attendance.find({ actorType: 'visitor', actorId: visitor._id })
+			const match: any = { actorType: 'visitor', actorId: visitor._id };
+			if (visitType === 'inspection' || visitType === 'regular') {
+				match.visitType = visitType;
+			}
+			const records = await Attendance.find(match)
 				.sort({ timestamp: -1 })
 				.limit(Math.max(1, Math.min(lim, 50)))
 				.lean();

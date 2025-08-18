@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom'
 import { employeeAPI, attendanceAPI } from '../lib/api'
 
 export default function VisitorPage() {
-  const [step, setStep] = useState(1) // 1: visitor info, 2: select host, 3: clock actions
+  const [step, setStep] = useState(1) // 1: visitor info, 2: select host (regular only), 3: clock actions
   const [visitorInfo, setVisitorInfo] = useState({ name: '', phone: '', email: '' })
+  const [visitType, setVisitType] = useState('regular')
   const [searchTerm, setSearchTerm] = useState('')
   const [employees, setEmployees] = useState([])
   const [filteredEmployees, setFilteredEmployees] = useState([])
@@ -82,7 +83,7 @@ export default function VisitorPage() {
     if (message.text) setMessage({ type: '', text: '' })
   try {
       // Fetch status by email to decide default action
-      const statusResp = await attendanceAPI.visitorStatus(visitorInfo.email)
+  const statusResp = await attendanceAPI.visitorStatus(visitorInfo.email, 10, visitType)
       if (statusResp.success) {
         setIsRegistered(!!statusResp.data.currentlyClockedIn)
       } else {
@@ -91,7 +92,11 @@ export default function VisitorPage() {
     } catch {
       setIsRegistered(false)
     }
-    setStep(2)
+    if (visitType === 'inspection') {
+      setStep(3)
+    } else {
+      setStep(2)
+    }
   }
 
   const handleHostSelect = (employee) => {
@@ -100,7 +105,8 @@ export default function VisitorPage() {
   }
 
   const handleClockAction = async (action) => {
-    if (!selectedHost || !visitorInfo.name) return
+  if (visitType !== 'inspection' && (!selectedHost || !visitorInfo.name)) return
+  if (visitType === 'inspection' && !visitorInfo.name) return
 
     setLoading(true)
     setMessage({ type: '', text: '' })
@@ -111,7 +117,8 @@ export default function VisitorPage() {
         email: visitorInfo.email,
         name: visitorInfo.name,
         action,
-        hostEmployeeId: selectedHost._id
+        visitType,
+        hostEmployeeId: visitType === 'inspection' ? undefined : selectedHost._id
       })
       
       if (clockResponse.success) {
@@ -152,6 +159,7 @@ export default function VisitorPage() {
   const resetForm = () => {
     setStep(1)
   setVisitorInfo({ name: '', phone: '', email: '' })
+  setVisitType('regular')
     setSelectedHost(null)
     setSearchTerm('')
     setMessage({ type: '', text: '' })
@@ -182,7 +190,7 @@ export default function VisitorPage() {
         <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
           {[
             { number: 1, title: 'Visitor Info', active: step >= 1 },
-            { number: 2, title: 'Select Host', active: step >= 2 },
+            ...(visitType === 'inspection' ? [] : [{ number: 2, title: 'Select Host', active: step >= 2 }]),
             { number: 3, title: 'Clock In/Out', active: step >= 3 }
           ].map((stepItem, index) => (
             <div key={index} className="flex items-center">
@@ -196,7 +204,7 @@ export default function VisitorPage() {
               }`}>
                 {stepItem.title}
               </span>
-              {index < 2 && (
+              {index < (visitType === 'inspection' ? 1 : 2) && (
                 <div className={`w-10 sm:w-16 h-1 mx-3 sm:mx-4 ${
                   step > stepItem.number ? 'bg-blue-600' : 'bg-gray-300'
                 }`} />
@@ -213,6 +221,19 @@ export default function VisitorPage() {
             Enter Your Information
           </h2>
           <form onSubmit={handleVisitorInfoSubmit}>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Visit Type</label>
+              <div className="flex gap-4">
+                <label className="inline-flex items-center gap-2">
+                  <input type="radio" name="visitType" value="regular" checked={visitType === 'regular'} onChange={() => setVisitType('regular')} />
+                  <span className="text-sm">No Inspection (Regular)</span>
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input type="radio" name="visitType" value="inspection" checked={visitType === 'inspection'} onChange={() => setVisitType('inspection')} />
+                  <span className="text-sm">Inspection</span>
+                </label>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-5 sm:mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -273,7 +294,7 @@ export default function VisitorPage() {
       )}
 
       {/* Step 2: Select Host Employee */}
-      {step === 2 && (
+  {step === 2 && visitType !== 'inspection' && (
         <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -344,7 +365,7 @@ export default function VisitorPage() {
       )}
 
       {/* Step 3: Clock Actions */}
-      {step === 3 && selectedHost && (
+  {step === 3 && (visitType === 'inspection' || selectedHost) && (
         <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -368,11 +389,17 @@ export default function VisitorPage() {
                 )}
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 mb-2">Meeting With</h3>
-                <p className="text-gray-700">{selectedHost.sessionClientId.fullName}</p>
-                <p className="text-sm text-gray-600">
-                  {selectedHost.department} • {selectedHost.title}
-                </p>
+                <h3 className="font-medium text-gray-900 mb-2">{visitType === 'inspection' ? 'Visit Type' : 'Meeting With'}</h3>
+                {visitType === 'inspection' ? (
+                  <p className="text-gray-700">Inspection</p>
+                ) : (
+                  <>
+                    <p className="text-gray-700">{selectedHost.sessionClientId.fullName}</p>
+                    <p className="text-sm text-gray-600">
+                      {selectedHost.department} • {selectedHost.title}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { 
   Users, 
   UserCheck, 
@@ -41,6 +41,35 @@ export default function AdminPage() {
     title: '',
     password: ''
   })
+
+  // Pagination state
+  const [employeesPage, setEmployeesPage] = useState(1)
+  const [employeesPageSize, setEmployeesPageSize] = useState(10)
+  const [attendancePage, setAttendancePage] = useState(1)
+  const [attendancePageSize, setAttendancePageSize] = useState(10)
+  const [visitorsPage, setVisitorsPage] = useState(1)
+  const [visitorsPageSize, setVisitorsPageSize] = useState(10)
+
+  // Compute which visitor records are the latest and currently clocked-in
+  const activeVisitorLatestIds = useMemo(() => {
+    // Track latest by composite key: actorId + visitType
+    const latestByKey = new Map()
+    for (const r of visitorRecords) {
+      const actorId = r?.actorId?._id || (typeof r?.actorId === 'string' ? r.actorId : undefined)
+      const vType = r?.visitType || 'regular'
+      if (!actorId) continue
+      const key = `${actorId}::${vType}`
+      if (!latestByKey.has(key)) {
+        // Records are sorted desc by timestamp from API; first seen is latest for that type
+        latestByKey.set(key, r)
+      }
+    }
+    const ids = new Set()
+    latestByKey.forEach((r) => {
+      if (r?.action === 'IN') ids.add(r._id)
+    })
+    return ids
+  }, [visitorRecords])
 
   // Check authentication
   useEffect(() => {
@@ -237,7 +266,10 @@ export default function AdminPage() {
     try {
       const exportData = visitorRecords.map(record => ({
         'Visitor Name': record?.actorId?.name || 'Unknown Visitor',
-        'Host Employee': record?.hostEmployeeId?.sessionClientId?.fullName || 'Unknown Host',
+        'Visit Type': record?.visitType || 'regular',
+        'Host Employee': record?.visitType === 'inspection' 
+          ? 'Inspection' 
+          : (record?.hostEmployeeId?.sessionClientId?.fullName || 'Unknown Host'),
         'Action': record?.action || 'UNKNOWN',
         'Date': new Date(record?.timestamp || Date.now()).toLocaleDateString(),
         'Time': new Date(record?.timestamp || Date.now()).toLocaleTimeString(),
@@ -530,6 +562,44 @@ export default function AdminPage() {
     return matchesSearch && matchesDate
   })
 
+  // Filter visitors by search
+  const filteredVisitors = visitorRecords.filter((record) => {
+    if (!searchTerm) return true
+    const visitorName = record?.actorId?.name || ''
+    return visitorName.toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
+  // Reset pages when filters change
+  useEffect(() => {
+    setEmployeesPage(1)
+    setAttendancePage(1)
+    setVisitorsPage(1)
+  }, [searchTerm, dateFilter])
+
+  // Reset pages when page size changes
+  useEffect(() => { setEmployeesPage(1) }, [employeesPageSize])
+  useEffect(() => { setAttendancePage(1) }, [attendancePageSize])
+  useEffect(() => { setVisitorsPage(1) }, [visitorsPageSize])
+
+  // Paginated slices
+  const employeesTotal = filteredEmployees.length
+  const employeesTotalPages = Math.max(1, Math.ceil(employeesTotal / employeesPageSize))
+  const employeesStart = (employeesPage - 1) * employeesPageSize
+  const employeesEnd = employeesStart + employeesPageSize
+  const employeesPageData = filteredEmployees.slice(employeesStart, employeesEnd)
+
+  const attendanceTotal = filteredAttendance.length
+  const attendanceTotalPages = Math.max(1, Math.ceil(attendanceTotal / attendancePageSize))
+  const attendanceStart = (attendancePage - 1) * attendancePageSize
+  const attendanceEnd = attendanceStart + attendancePageSize
+  const attendancePageData = filteredAttendance.slice(attendanceStart, attendanceEnd)
+
+  const visitorsTotal = filteredVisitors.length
+  const visitorsTotalPages = Math.max(1, Math.ceil(visitorsTotal / visitorsPageSize))
+  const visitorsStart = (visitorsPage - 1) * visitorsPageSize
+  const visitorsEnd = visitorsStart + visitorsPageSize
+  const visitorsPageData = filteredVisitors.slice(visitorsStart, visitorsEnd)
+
   const stats = {
     totalEmployees: employees.length,
     todayAttendance: attendanceRecords.filter(record => 
@@ -755,6 +825,7 @@ export default function AdminPage() {
               )}
             </div>
           ) : (
+            <>
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-x-auto">
             <table className="min-w-[720px] w-full">
               <thead className="bg-gray-50">
@@ -777,7 +848,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEmployees.map((employee) => (
+                {employeesPageData.map((employee) => (
                   <tr key={employee._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
@@ -817,6 +888,18 @@ export default function AdminPage() {
               </tbody>
             </table>
             </div>
+            {/* Employees Pagination */}
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="text-sm text-gray-600">Page {employeesPage} of {employeesTotalPages}</div>
+              <div className="flex items-center gap-2">
+                <button disabled={employeesPage <= 1} onClick={() => setEmployeesPage(p => Math.max(1, p - 1))} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+                <button disabled={employeesPage >= employeesTotalPages} onClick={() => setEmployeesPage(p => Math.min(employeesTotalPages, p + 1))} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+                <select value={employeesPageSize} onChange={(e) => setEmployeesPageSize(Number(e.target.value))} className="ml-2 border rounded px-2 py-1 text-sm">
+                  {[10, 20, 50].map(n => <option key={n} value={n}>{n}/page</option>)}
+                </select>
+              </div>
+            </div>
+            </>
           )}
             </>
           )}
@@ -884,7 +967,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAttendance.map((record) => (
+                {attendancePageData.map((record) => (
                   <tr key={record._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {record.actorType === 'employee' 
@@ -920,6 +1003,17 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Attendance Pagination */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="text-sm text-gray-600">Page {attendancePage} of {attendanceTotalPages}</div>
+            <div className="flex items-center gap-2">
+              <button disabled={attendancePage <= 1} onClick={() => setAttendancePage(p => Math.max(1, p - 1))} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+              <button disabled={attendancePage >= attendanceTotalPages} onClick={() => setAttendancePage(p => Math.min(attendanceTotalPages, p + 1))} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+              <select value={attendancePageSize} onChange={(e) => setAttendancePageSize(Number(e.target.value))} className="ml-2 border rounded px-2 py-1 text-sm">
+                {[10, 20, 50].map(n => <option key={n} value={n}>{n}/page</option>)}
+              </select>
+            </div>
           </div>
         </div>
       )}
@@ -971,13 +1065,15 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {visitorRecords.map((record) => (
+                {visitorsPageData.map((record) => (
                   <tr key={record._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {record?.actorId?.name || 'Unknown Visitor'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record?.hostEmployeeId?.sessionClientId?.fullName || 'Unknown Host'}
+                      {record?.visitType === 'inspection' 
+                        ? 'Inspection' 
+                        : (record?.hostEmployeeId?.sessionClientId?.fullName || 'Unknown Host')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -991,10 +1087,38 @@ export default function AdminPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(record?.timestamp || Date.now()).toLocaleString()}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                      {record?.action === 'IN' && activeVisitorLatestIds.has(record._id) && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await attendanceAPI.adminForceVisitorClockOut({ actorId: record?.actorId?._id, visitType: record?.visitType })
+                              await refreshData()
+                            } catch {
+                              alert('Failed to clock out visitor')
+                            }
+                          }}
+                          className="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs"
+                        >
+                          Force Clock Out
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Visitors Pagination */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="text-sm text-gray-600">Page {visitorsPage} of {visitorsTotalPages}</div>
+            <div className="flex items-center gap-2">
+              <button disabled={visitorsPage <= 1} onClick={() => setVisitorsPage(p => Math.max(1, p - 1))} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+              <button disabled={visitorsPage >= visitorsTotalPages} onClick={() => setVisitorsPage(p => Math.min(visitorsTotalPages, p + 1))} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+              <select value={visitorsPageSize} onChange={(e) => setVisitorsPageSize(Number(e.target.value))} className="ml-2 border rounded px-2 py-1 text-sm">
+                {[10, 20, 50].map(n => <option key={n} value={n}>{n}/page</option>)}
+              </select>
+            </div>
           </div>
         </div>
       )}

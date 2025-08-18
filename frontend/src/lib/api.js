@@ -144,18 +144,25 @@ export const attendanceAPI = {
   },
 
   // Visitor clock in/out
-  visitorClock: async (action, hostEmployeeId) => {
-    const response = await api.post('/attendance/visitor/clock', { action, hostEmployeeId })
+  visitorClock: async (action, hostEmployeeId, visitType) => {
+    const response = await api.post('/attendance/visitor/clock', { action, hostEmployeeId, visitType })
     return response.data
   },
   // Kiosk visitor clock (no auth) by email/name
-  visitorKioskClock: async ({ email, name, action, hostEmployeeId }) => {
-    const response = await api.post('/attendance/visitor/kiosk-clock', { email, name, action, hostEmployeeId })
+  visitorKioskClock: async ({ email, name, action, hostEmployeeId, visitType }) => {
+    const response = await api.post('/attendance/visitor/kiosk-clock', { email, name, action, hostEmployeeId, visitType })
     return response.data
   },
-  // Visitor status by email
-  visitorStatus: async (email, limit = 10) => {
-    const response = await api.get(`/attendance/visitor/status?email=${encodeURIComponent(email)}&limit=${encodeURIComponent(limit)}`)
+  // Visitor status by email (optionally scoped by visitType)
+  visitorStatus: async (email, limit = 10, visitType) => {
+    const params = new URLSearchParams({ email, limit: String(limit) })
+    if (visitType) params.append('visitType', visitType)
+    const response = await api.get(`/attendance/visitor/status?${params.toString()}`)
+    return response.data
+  },
+  // Admin: force clock out a visitor (by actorId or email)
+  adminForceVisitorClockOut: async ({ actorId, email, visitType }) => {
+    const response = await api.post('/attendance/admin/visitor/force-clock-out', { actorId, email, visitType })
     return response.data
   },
 
