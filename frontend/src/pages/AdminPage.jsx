@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
-import {
-  Users,
-  UserCheck,
-  Calendar,
-  Clock,
-  Plus,
-  Edit2,
-  Trash2,
+import { 
+  Users, 
+  UserCheck, 
+  Calendar, 
+  Clock, 
+  Plus, 
+  Edit2, 
+  Trash2, 
   LogOut,
   Search,
   Filter,
@@ -109,12 +109,12 @@ export default function AdminPage() {
           type: 'error',
           text: 'Failed to load data. Please check your connection and try again.'
         })
-
+        
         // Set empty arrays instead of mock data
         setEmployees([])
         setAttendanceRecords([])
         setVisitorRecords([])
-
+        
         setTimeout(() => setMessage({ type: '', text: '' }), 5000)
       } finally {
         setIsLoading(false)
@@ -190,13 +190,13 @@ export default function AdminPage() {
       localStorage.removeItem('adminAuth')
       localStorage.removeItem('adminInfo')
       localStorage.removeItem('rememberAdmin')
-
+      
       // Show a brief message before redirect
       setMessage({
         type: 'success',
         text: 'Successfully logged out. Redirecting...'
       })
-
+      
       setTimeout(() => {
         navigate('/admin/login', { replace: true })
         setIsLoggingOut(false)
@@ -214,7 +214,7 @@ export default function AdminPage() {
     const headers = Object.keys(data[0])
     const csvContent = [
       headers.join(','),
-      ...data.map(row =>
+      ...data.map(row => 
         headers.map(header => {
           const value = row[header]
           // Handle nested objects and escape commas
@@ -241,7 +241,7 @@ export default function AdminPage() {
     setIsExporting(true)
     try {
       const exportData = filteredAttendance.map(record => ({
-        'Name': record.actorType === 'employee'
+        'Name': record.actorType === 'employee' 
           ? record?.actorId?.sessionClientId?.fullName || 'Unknown Employee'
           : record?.actorId?.name || 'Unknown Visitor',
         'Type': record.actorType === 'employee' ? 'Employee' : 'Visitor',
@@ -250,7 +250,7 @@ export default function AdminPage() {
         'Time': new Date(record?.timestamp || Date.now()).toLocaleTimeString(),
         'Timestamp': record?.timestamp || Date.now()
       }))
-
+      
       const filename = `attendance-records-${new Date().toISOString().split('T')[0]}.csv`
       exportToCSV(exportData, filename)
     } catch (error) {
@@ -267,8 +267,8 @@ export default function AdminPage() {
       const exportData = visitorRecords.map(record => ({
         'Visitor Name': record?.actorId?.name || 'Unknown Visitor',
         'Visit Type': record?.visitType || 'regular',
-        'Host Employee': record?.visitType === 'inspection'
-          ? 'Inspection'
+        'Host Employee': record?.visitType === 'inspection' 
+          ? 'Inspection' 
           : (record?.hostEmployeeId?.sessionClientId?.fullName || 'Unknown Host'),
         'Action': record?.action || 'UNKNOWN',
         'Date': new Date(record?.timestamp || Date.now()).toLocaleDateString(),
@@ -278,7 +278,7 @@ export default function AdminPage() {
         'Phone': record?.actorId?.phone || 'N/A',
         'Timestamp': record?.timestamp || Date.now()
       }))
-
+      
       const filename = `visitor-log-${new Date().toISOString().split('T')[0]}.csv`
       exportToCSV(exportData, filename)
     } catch (error) {
@@ -300,7 +300,7 @@ export default function AdminPage() {
         'Title': employee?.title || 'N/A',
         'Created Date': new Date(employee?.createdAt || Date.now()).toLocaleDateString()
       }))
-
+      
       const filename = `employee-list-${new Date().toISOString().split('T')[0]}.csv`
       exportToCSV(exportData, filename)
     } catch (error) {
@@ -362,10 +362,25 @@ export default function AdminPage() {
         return
       }
 
+      // Validate password if provided: max 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
+      if (newEmployee.password && newEmployee.password.trim().length > 0) {
+        const pwd = newEmployee.password.trim()
+        const lengthOk = pwd.length <= 8
+        const compositionOk = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(pwd)
+        if (!lengthOk || !compositionOk) {
+          setMessage({
+            type: 'error',
+            text: 'Password must be max 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+          })
+          setTimeout(() => setMessage({ type: '', text: '' }), 4000)
+          return
+        }
+      }
+
       // Generate employee ID if not provided
       const employeeId = newEmployee.employeeId || `EMP${Date.now().toString().slice(-6)}`
 
-      // Create employee payload (flat fields as expected by API)
+  // Create employee payload (flat fields as expected by API)
       const employeePayload = {
         fullName: newEmployee.name,
         email: newEmployee.email,
@@ -376,7 +391,7 @@ export default function AdminPage() {
       }
 
       const response = await employeeAPI.register(employeePayload)
-
+      
       if (response.success) {
         // Refresh employee list
         await refreshData()
@@ -385,7 +400,7 @@ export default function AdminPage() {
           type: 'success',
           text: `Employee ${newEmployee.name} added successfully!`
         })
-
+        
         setTimeout(() => {
           setMessage({ type: '', text: '' })
           handleCloseModal()
@@ -447,6 +462,21 @@ export default function AdminPage() {
         return
       }
 
+      // Validate password if provided: max 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
+      if (newEmployee.password && newEmployee.password.trim().length > 0) {
+        const pwd = newEmployee.password.trim()
+        const lengthOk = pwd.length <= 8
+        const compositionOk = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(pwd)
+        if (!lengthOk || !compositionOk) {
+          setMessage({
+            type: 'error',
+            text: 'Password must be max 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+          })
+          setTimeout(() => setMessage({ type: '', text: '' }), 4000)
+          return
+        }
+      }
+
       // Update employee payload
       const updatePayload = {
         sessionClientId: {
@@ -460,7 +490,7 @@ export default function AdminPage() {
       }
 
       const response = await employeeAPI.update(editingEmployee._id, updatePayload)
-
+      
       if (response.success) {
         // Refresh employee list
         await refreshData()
@@ -469,7 +499,7 @@ export default function AdminPage() {
           type: 'success',
           text: `Employee ${newEmployee.name} updated successfully!`
         })
-
+        
         setTimeout(() => {
           setMessage({ type: '', text: '' })
           handleCloseEditModal()
@@ -492,17 +522,17 @@ export default function AdminPage() {
 
   // Delete employee function
   const handleDeleteEmployee = async (employee) => {
-    if (!window.confirm(`Are you sure you want to delete ${employee?.sessionClientId?.fullName || 'this employee'}? This action cannot be undone.`)) {
+  if (!window.confirm(`Are you sure you want to delete ${employee?.sessionClientId?.fullName || 'this employee'}? This action cannot be undone.`)) {
       return
     }
 
     try {
       const response = await employeeAPI.delete(employee._id)
-
+      
       if (response.success) {
         // Remove from local state
         setEmployees(prev => prev.filter(emp => emp._id !== employee._id))
-
+        
         setMessage({
           type: 'success',
           text: `Employee ${employee?.sessionClientId?.fullName || 'record'} deleted successfully!`
@@ -540,7 +570,7 @@ export default function AdminPage() {
     const name = emp?.sessionClientId?.fullName || '';
     const employeeId = emp?.employeeId || '';
     const department = emp?.department || '';
-
+    
     return (
       name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -558,10 +588,10 @@ export default function AdminPage() {
         return visitorName.toLowerCase().includes(searchTerm.toLowerCase());
       }
     })();
-
-    const matchesDate = dateFilter === '' ||
+    
+    const matchesDate = dateFilter === '' || 
       new Date(record.timestamp).toISOString().split('T')[0] === dateFilter
-
+    
     return matchesSearch && matchesDate
   })
 
@@ -605,13 +635,13 @@ export default function AdminPage() {
 
   const stats = {
     totalEmployees: employees.length,
-    todayAttendance: attendanceRecords.filter(record =>
+    todayAttendance: attendanceRecords.filter(record => 
       new Date(record.timestamp).toDateString() === new Date().toDateString()
     ).length,
     totalVisitors: visitorRecords.length,
-    activeEmployees: attendanceRecords.filter(record =>
-      record.actorType === 'employee' &&
-      record.action === 'IN' &&
+    activeEmployees: attendanceRecords.filter(record => 
+      record.actorType === 'employee' && 
+      record.action === 'IN' && 
       new Date(record.timestamp).toDateString() === new Date().toDateString()
     ).length
   }
@@ -619,22 +649,23 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto px-4">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-6 sm:mb-8">
+    <div className="flex items-center justify-between gap-3 flex-wrap mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
             Admin Dashboard
           </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
+      <p className="text-gray-600 text-sm sm:text-base">
             Manage employees, view attendance records, and monitor system activity.
           </p>
         </div>
         <button
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${isLoggingOut
-              ? 'bg-gray-400 cursor-not-allowed'
+          className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+            isLoggingOut 
+              ? 'bg-gray-400 cursor-not-allowed' 
               : 'bg-red-600 hover:bg-red-700'
-            } text-white`}
+          } text-white`}
         >
           {isLoggingOut ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -659,10 +690,11 @@ export default function AdminPage() {
               <button
                 key={tabItem.id}
                 onClick={() => setActiveTab(tabItem.id)}
-                className={`flex items-center space-x-2 py-3 sm:py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === tabItem.id
+                className={`flex items-center space-x-2 py-3 sm:py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap ${
+                  activeTab === tabItem.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                }`}
               >
                 <IconComponent className="h-5 w-5" />
                 <span>{tabItem.label}</span>
@@ -688,7 +720,7 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-
+            
             <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 border border-gray-200">
               <div className="flex items-center">
                 <div className="bg-green-100 p-3 rounded-full">
@@ -734,14 +766,16 @@ export default function AdminPage() {
             <div className="space-y-4">
               {attendanceRecords.slice(0, 5).map((record) => (
                 <div key={record._id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                  <div className={`p-2 rounded-full ${record.action === 'IN' ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
-                    <Clock className={`h-4 w-4 ${record.action === 'IN' ? 'text-green-600' : 'text-red-600'
-                      }`} />
+                  <div className={`p-2 rounded-full ${
+                    record.action === 'IN' ? 'bg-green-100' : 'bg-red-100'
+                  }`}>
+                    <Clock className={`h-4 w-4 ${
+                      record.action === 'IN' ? 'text-green-600' : 'text-red-600'
+                    }`} />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">
-                      {record.actorType === 'employee'
+                      {record.actorType === 'employee' 
                         ? record?.actorId?.sessionClientId?.fullName || 'Employee'
                         : `${record?.actorId?.name || 'Visitor'} (Visitor)`
                       } clocked {(record?.action || '').toLowerCase()}
@@ -770,135 +804,136 @@ export default function AdminPage() {
           ) : (
             <>
               <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
-                <div className="relative w-full sm:w-auto">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search employees..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-80"
-                  />
-                </div>
-                <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-end sm:justify-normal">
-                  <button
-                    onClick={exportEmployeeList}
-                    disabled={isExporting}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg w-full sm:w-auto justify-center ${isExporting
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-700'
-                      } text-white`}
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>{isExporting ? 'Exporting...' : 'Export'}</span>
-                  </button>
-                  <button
-                    onClick={handleAddEmployee}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto justify-center"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add Employee</span>
-                  </button>
-                </div>
-              </div>
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search employees..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-80"
+              />
+            </div>
+            <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-end sm:justify-normal">
+              <button 
+                onClick={exportEmployeeList}
+                disabled={isExporting}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg w-full sm:w-auto justify-center ${
+                  isExporting 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-green-600 hover:bg-green-700'
+                } text-white`}
+              >
+                <Download className="h-4 w-4" />
+                <span>{isExporting ? 'Exporting...' : 'Export'}</span>
+              </button>
+              <button 
+                onClick={handleAddEmployee}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto justify-center"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Employee</span>
+              </button>
+            </div>
+          </div>
 
-              {filteredEmployees.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-lg p-8 sm:p-12 text-center">
-                  <Users className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
-                  <p className="text-gray-500 mb-6">
-                    {searchTerm
-                      ? `No employees match "${searchTerm}". Try adjusting your search.`
-                      : 'Get started by adding your first employee to the system.'
-                    }
-                  </p>
-                  {!searchTerm && (
-                    <button
-                      onClick={handleAddEmployee}
-                      className="flex items-center space-x-2 mx-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors w-full sm:w-auto justify-center"
-                    >
-                      <Plus className="h-5 w-5" />
-                      <span>Add First Employee</span>
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-x-auto">
-                    <table className="min-w-[720px] w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Employee
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ID
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Department
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Title
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {employeesPageData.map((employee) => (
-                          <tr key={employee._id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {employee?.sessionClientId?.fullName || 'Unknown Employee'}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {employee?.sessionClientId?.email || 'No email'}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {employee?.employeeId || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {employee?.department || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {employee?.title || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button
-                                onClick={() => handleEditEmployee(employee)}
-                                className="text-blue-600 hover:text-blue-900 mr-4"
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteEmployee(employee)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {/* Employees Pagination */}
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <div className="text-sm text-gray-600">Page {employeesPage} of {employeesTotalPages}</div>
-                    <div className="flex items-center gap-2">
-                      <button disabled={employeesPage <= 1} onClick={() => setEmployeesPage(p => Math.max(1, p - 1))} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-                      <button disabled={employeesPage >= employeesTotalPages} onClick={() => setEmployeesPage(p => Math.min(employeesTotalPages, p + 1))} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
-                      <select value={employeesPageSize} onChange={(e) => setEmployeesPageSize(Number(e.target.value))} className="ml-2 border rounded px-2 py-1 text-sm">
-                        {[10, 20, 50].map(n => <option key={n} value={n}>{n}/page</option>)}
-                      </select>
-                    </div>
-                  </div>
-                </>
+          {filteredEmployees.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 sm:p-12 text-center">
+              <Users className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
+              <p className="text-gray-500 mb-6">
+                {searchTerm 
+                  ? `No employees match "${searchTerm}". Try adjusting your search.`
+                  : 'Get started by adding your first employee to the system.'
+                }
+              </p>
+              {!searchTerm && (
+                <button 
+                  onClick={handleAddEmployee}
+                  className="flex items-center space-x-2 mx-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors w-full sm:w-auto justify-center"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Add First Employee</span>
+                </button>
               )}
+            </div>
+          ) : (
+            <>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-x-auto">
+            <table className="min-w-[720px] w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Employee
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Department
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {employeesPageData.map((employee) => (
+                  <tr key={employee._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {employee?.sessionClientId?.fullName || 'Unknown Employee'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {employee?.sessionClientId?.email || 'No email'}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee?.employeeId || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee?.department || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {employee?.title || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button 
+                        onClick={() => handleEditEmployee(employee)}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteEmployee(employee)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
+            {/* Employees Pagination */}
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="text-sm text-gray-600">Page {employeesPage} of {employeesTotalPages}</div>
+              <div className="flex items-center gap-2">
+                <button disabled={employeesPage <= 1} onClick={() => setEmployeesPage(p => Math.max(1, p - 1))} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+                <button disabled={employeesPage >= employeesTotalPages} onClick={() => setEmployeesPage(p => Math.min(employeesTotalPages, p + 1))} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+                <select value={employeesPageSize} onChange={(e) => setEmployeesPageSize(Number(e.target.value))} className="ml-2 border rounded px-2 py-1 text-sm">
+                  {[10, 20, 50].map(n => <option key={n} value={n}>{n}/page</option>)}
+                </select>
+              </div>
+            </div>
+            </>
+          )}
             </>
           )}
         </div>
@@ -929,13 +964,14 @@ export default function AdminPage() {
                 />
               </div>
             </div>
-            <button
+            <button 
               onClick={exportAttendanceData}
               disabled={isExporting}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg w-full sm:w-auto justify-center ${isExporting
-                  ? 'bg-gray-400 cursor-not-allowed'
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg w-full sm:w-auto justify-center ${
+                isExporting 
+                  ? 'bg-gray-400 cursor-not-allowed' 
                   : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
+              } text-white`}
             >
               <Download className="h-4 w-4" />
               <span>{isExporting ? 'Exporting...' : 'Export'}</span>
@@ -967,24 +1003,26 @@ export default function AdminPage() {
                 {attendancePageData.map((record) => (
                   <tr key={record._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {record.actorType === 'employee'
+                      {record.actorType === 'employee' 
                         ? record?.actorId?.sessionClientId?.fullName || 'Unknown Employee'
                         : record?.actorId?.name || 'Unknown Visitor'
                       }
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${record.actorType === 'employee'
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        record.actorType === 'employee'
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-purple-100 text-purple-800'
-                        }`}>
+                      }`}>
                         {record.actorType}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${record.action === 'IN'
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        record.action === 'IN'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                        }`}>
+                      }`}>
                         Clock {record.action}
                       </span>
                     </td>
@@ -1027,13 +1065,14 @@ export default function AdminPage() {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-80"
               />
             </div>
-            <button
+            <button 
               onClick={exportVisitorLog}
               disabled={isExporting}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg w-full sm:w-auto justify-center ${isExporting
-                  ? 'bg-gray-400 cursor-not-allowed'
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg w-full sm:w-auto justify-center ${
+                isExporting 
+                  ? 'bg-gray-400 cursor-not-allowed' 
                   : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
+              } text-white`}
             >
               <Download className="h-4 w-4" />
               <span>{isExporting ? 'Exporting...' : 'Export Visitor Log'}</span>
@@ -1065,15 +1104,16 @@ export default function AdminPage() {
                       {record?.actorId?.name || 'Unknown Visitor'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record?.visitType === 'inspection'
-                        ? 'Inspection'
+                      {record?.visitType === 'inspection' 
+                        ? 'Inspection' 
                         : (record?.hostEmployeeId?.sessionClientId?.fullName || 'Unknown Host')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${record?.action === 'IN'
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        record?.action === 'IN'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                        }`}>
+                      }`}>
                         Clock {record?.action || 'UNKNOWN'}
                       </span>
                     </td>
@@ -1117,12 +1157,12 @@ export default function AdminPage() {
       )}
 
       {/* Add Employee Modal */}
-      {showAddEmployeeModal && (
-        <div
+    {showAddEmployeeModal && (
+        <div 
           className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={(e) => e.target === e.currentTarget && handleCloseModal()}
         >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Add New Employee</h3>
               <button
@@ -1132,17 +1172,18 @@ export default function AdminPage() {
                 <X className="h-6 w-6" />
               </button>
             </div>
-
+            
             {/* Message Display */}
             {message.text && (
-              <div className={`mx-6 mb-4 p-3 rounded-lg ${message.type === 'success'
-                  ? 'bg-green-100 border border-green-300 text-green-700'
+              <div className={`mx-6 mb-4 p-3 rounded-lg ${
+                message.type === 'success' 
+                  ? 'bg-green-100 border border-green-300 text-green-700' 
                   : 'bg-red-100 border border-red-300 text-red-700'
-                }`}>
+              }`}>
                 {message.text}
               </div>
             )}
-
+            
             <form onSubmit={handleSubmitEmployee} className="p-6 pt-0">
               <div className="space-y-4">
                 <div>
@@ -1159,7 +1200,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email *
@@ -1174,7 +1215,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-
+                
                 {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Employee ID
@@ -1191,7 +1232,7 @@ export default function AdminPage() {
                     Leave blank to auto-generate an Employee ID
                   </p>
                 </div> */}
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Department
@@ -1214,7 +1255,7 @@ export default function AdminPage() {
                     <option value="IT">IT</option>
                   </select>
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Job Title
@@ -1228,7 +1269,7 @@ export default function AdminPage() {
                     placeholder="Enter job title"
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Password
@@ -1239,17 +1280,19 @@ export default function AdminPage() {
                     value={newEmployee.password}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    maxLength={8}
                     placeholder="Leave blank for default password"
                   />
+
                   <p className="text-xs text-gray-500 mt-1">
-                    Min 8 characters, at least 1 uppercase letter, 1 lowercase letter, and 1 number.
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                    max 8 characters, at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+                    <br />
+                    <strong>Note:</strong>
                     If left blank, default password will be: defaultPassword123
                   </p>
                 </div>
               </div>
-
+              
               <div className="flex items-center justify-end space-x-4 mt-6 pt-6 border-t border-gray-200">
                 <button
                   type="button"
@@ -1261,10 +1304,11 @@ export default function AdminPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg ${isSubmitting
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg ${
+                    isSubmitting
                       ? 'bg-gray-400 cursor-not-allowed text-white'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
+                  }`}
                 >
                   <Save className="h-4 w-4" />
                   <span>{isSubmitting ? 'Adding...' : 'Add Employee'}</span>
@@ -1276,12 +1320,12 @@ export default function AdminPage() {
       )}
 
       {/* Edit Employee Modal */}
-      {showEditEmployeeModal && (
-        <div
+    {showEditEmployeeModal && (
+        <div 
           className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={(e) => e.target === e.currentTarget && handleCloseEditModal()}
         >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Edit Employee</h3>
               <button
@@ -1291,17 +1335,18 @@ export default function AdminPage() {
                 <X className="h-6 w-6" />
               </button>
             </div>
-
+            
             {/* Message Display */}
             {message.text && (
-              <div className={`mx-6 mb-4 p-3 rounded-lg ${message.type === 'success'
-                  ? 'bg-green-100 border border-green-300 text-green-700'
+              <div className={`mx-6 mb-4 p-3 rounded-lg ${
+                message.type === 'success' 
+                  ? 'bg-green-100 border border-green-300 text-green-700' 
                   : 'bg-red-100 border border-red-300 text-red-700'
-                }`}>
+              }`}>
                 {message.text}
               </div>
             )}
-
+            
             <form onSubmit={handleUpdateEmployee} className="p-6 pt-0">
               <div className="space-y-4">
                 <div>
@@ -1317,7 +1362,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email Address *
@@ -1331,7 +1376,7 @@ export default function AdminPage() {
                     required
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Employee ID
@@ -1345,7 +1390,7 @@ export default function AdminPage() {
                     readOnly
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Department
@@ -1358,7 +1403,7 @@ export default function AdminPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Job Title
@@ -1371,7 +1416,7 @@ export default function AdminPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     New Password (leave empty to keep current)
@@ -1382,10 +1427,11 @@ export default function AdminPage() {
                     value={newEmployee.password}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    maxLength={8}
                   />
                 </div>
               </div>
-
+              
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
@@ -1397,10 +1443,11 @@ export default function AdminPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg ${isSubmitting
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-lg ${
+                    isSubmitting
                       ? 'bg-gray-400 cursor-not-allowed text-white'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
+                  }`}
                 >
                   <Save className="h-4 w-4" />
                   <span>{isSubmitting ? 'Updating...' : 'Update Employee'}</span>
