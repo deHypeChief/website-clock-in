@@ -72,16 +72,10 @@ export default function EmployeeLogin() {
       }
     } catch (error) {
       console.error('Employee login failed:', error)
-      
-      if (error.response?.status === 401) {
-        setError('Invalid email or password')
-      } else if (error.response?.status === 429) {
-        setError('Too many login attempts. Please try again later.')
-      } else if (error.response?.status >= 500) {
-        setError('Server error. Please try again later.')
-      } else {
-        setError('Login failed. Please try again.')
-      }
+
+      // Prefer API-provided error message when available
+      const apiMsg = error.response?.data?.message || error.response?.data?.error || error.message
+      setError(apiMsg || 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }

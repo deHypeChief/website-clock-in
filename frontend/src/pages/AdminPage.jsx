@@ -395,9 +395,10 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('Add employee failed:', error)
+      const apiMsg = error.response?.data?.message || error.response?.data?.error || error.message
       setMessage({
         type: 'error',
-        text: `Failed to add employee: ${error.message}`
+        text: `Failed to add employee: ${apiMsg}`
       })
       setTimeout(() => setMessage({ type: '', text: '' }), 3000)
     } finally {
@@ -478,9 +479,10 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('Update employee failed:', error)
+      const apiMsg = error.response?.data?.message || error.response?.data?.error || error.message
       setMessage({
         type: 'error',
-        text: `Failed to update employee: ${error.message}`
+        text: `Failed to update employee: ${apiMsg}`
       })
       setTimeout(() => setMessage({ type: '', text: '' }), 3000)
     } finally {
@@ -511,9 +513,10 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('Delete employee failed:', error)
+      const apiMsg = error.response?.data?.message || error.response?.data?.error || error.message
       setMessage({
         type: 'error',
-        text: `Failed to delete employee: ${error.message}`
+        text: `Failed to delete employee: ${apiMsg}`
       })
       setTimeout(() => setMessage({ type: '', text: '' }), 3000)
     }

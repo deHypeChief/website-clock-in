@@ -80,18 +80,9 @@ export default function AdminLogin() {
     } catch (error) {
       console.error('Login failed:', error)
       
-      // Enhanced error handling based on error type
-      if (error.response?.status === 401) {
-        setError('Invalid email or password')
-      } else if (error.response?.status === 429) {
-        setError('Too many login attempts. Please try again later.')
-      } else if (error.response?.status >= 500) {
-        setError('Server error. Please try again later.')
-      } else if (error.code === 'NETWORK_ERROR') {
-        setError('Network error. Please check your connection.')
-      } else {
-        setError('Login failed. Please try again.')
-      }
+      // Prefer API-provided error message when available
+      const apiMsg = error.response?.data?.message || error.response?.data?.error || error.message
+      setError(apiMsg || 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }

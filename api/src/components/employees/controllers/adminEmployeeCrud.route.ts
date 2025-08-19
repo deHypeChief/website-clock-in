@@ -3,7 +3,7 @@ import { isSessionAuth } from "../../../middleware/authSession.middleware";
 import ErrorHandler from "../../../services/errorHandler.service";
 import SuccessHandler from "../../../services/successHandler.service";
 import { Employee } from "../_model";
-import { SessionClient } from "../../auth/_model";
+import { SessionClient, Session } from "../../auth/_model";
 
 const adminEmployeeCrud = new Elysia({ prefix: "/admin" })
     .use(isSessionAuth("admin"))
@@ -11,7 +11,7 @@ const adminEmployeeCrud = new Elysia({ prefix: "/admin" })
         try {
             const { q } = (query || {}) as any;
             let filter: any = {};
-            let sessionIds: string[] | undefined;
+            let sessionIds: any[] | undefined;
             if (q && typeof q === 'string') {
                 const regex = new RegExp(q, 'i');
                 // Try match denormalized fields first
@@ -82,9 +82,23 @@ const adminEmployeeCrud = new Elysia({ prefix: "/admin" })
     }, { detail: { tags: ['Admin', 'Employee'] } })
     .delete("/employees/:id", async ({ set, params }) => {
         try {
-            const deleted = await Employee.findByIdAndDelete((params as any).id);
-            if (!deleted) return ErrorHandler.ValidationError(set, "Employee not found");
-            return SuccessHandler(set, "Employee deleted", deleted)
+            const emp = await Employee.findById((params as any).id);
+            if (!emp) return ErrorHandler.ValidationError(set, "Employee not found");
+
+            const sessionClientId = (emp as any).sessionClientId;
+
+            // Delete the employee first
+            await Employee.findByIdAndDelete((params as any).id);
+
+            // Cascade delete: remove associated sessions and session client
+            if (sessionClientId) {
+                try {
+                    await Session.deleteMany({ sessionClientId });
+                } catch (_) { /* no-op */ }
+                await SessionClient.findByIdAndDelete(sessionClientId);
+            }
+
+            return SuccessHandler(set, "Employee and linked session client deleted", { employeeId: (emp as any)._id, sessionClientId })
         } catch (error) {
             return ErrorHandler.ServerError(set, "Error deleting employee", error)
         }

@@ -95,23 +95,8 @@ export default function AdminRegister() {
       }
     } catch (error) {
       console.error('Registration failed:', error)
-      
-      if (error.response?.status === 409) {
-        setMessage({
-          type: 'error',
-          text: 'An admin account with this email already exists'
-        })
-      } else if (error.response?.status >= 500) {
-        setMessage({
-          type: 'error',
-          text: 'Server error. Please try again later.'
-        })
-      } else {
-        setMessage({
-          type: 'error',
-          text: 'Registration failed. Please try again.'
-        })
-      }
+      const apiMsg = error.response?.data?.message || error.response?.data?.error || error.message
+      setMessage({ type: 'error', text: apiMsg || 'Registration failed. Please try again.' })
     } finally {
       setLoading(false)
     }
