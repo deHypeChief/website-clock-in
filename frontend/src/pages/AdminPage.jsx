@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
-import { 
-  Users, 
-  UserCheck, 
-  Calendar, 
-  Clock, 
-  Plus, 
-  Edit2, 
-  Trash2, 
+import {
+  Users,
+  UserCheck,
+  Calendar,
+  Clock,
+  Plus,
+  Edit2,
+  Trash2,
   LogOut,
   Search,
   Filter,
@@ -362,15 +362,15 @@ export default function AdminPage() {
         return
       }
 
-      // Validate password if provided: max 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
+      // Validate password if provided: at least 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
       if (newEmployee.password && newEmployee.password.trim().length > 0) {
         const pwd = newEmployee.password.trim()
-        const lengthOk = pwd.length <= 8
+        const lengthOk = pwd.length >= 8
         const compositionOk = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(pwd)
         if (!lengthOk || !compositionOk) {
           setMessage({
             type: 'error',
-            text: 'Password must be max 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+            text: 'Password must be at least 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
           })
           setTimeout(() => setMessage({ type: '', text: '' }), 4000)
           return
@@ -462,15 +462,15 @@ export default function AdminPage() {
         return
       }
 
-      // Validate password if provided: max 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
+      // Validate password if provided: at least 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
       if (newEmployee.password && newEmployee.password.trim().length > 0) {
         const pwd = newEmployee.password.trim()
-        const lengthOk = pwd.length <= 8
+        const lengthOk = pwd.length >= 8
         const compositionOk = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(pwd)
         if (!lengthOk || !compositionOk) {
           setMessage({
             type: 'error',
-            text: 'Password must be max 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+            text: 'Password must be at least 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
           })
           setTimeout(() => setMessage({ type: '', text: '' }), 4000)
           return
@@ -1280,12 +1280,12 @@ export default function AdminPage() {
                     value={newEmployee.password}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    maxLength={8}
+                    minLength={8}
                     placeholder="Leave blank for default password"
                   />
 
                   <p className="text-xs text-gray-500 mt-1">
-                    max 8 characters, at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+                    at least 8 characters, at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
                     <br />
                     <strong>Note:</strong>
                     If left blank, default password will be: defaultPassword123
@@ -1427,7 +1427,7 @@ export default function AdminPage() {
                     value={newEmployee.password}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    maxLength={8}
+                    minLength={8}
                   />
                 </div>
               </div>
