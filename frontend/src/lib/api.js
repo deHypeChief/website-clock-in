@@ -47,12 +47,6 @@ api.interceptors.response.use(
 
 // Employee API functions
 export const employeeAPI = {
-  // Sign in employee
-  signIn: async (email, password) => {
-    const response = await api.post('/employees/sign', { email, password })
-    return response.data
-  },
-
   // Register employee (admin only)
   register: async (employeeData) => {
     const response = await api.post('/employees/register', employeeData)
@@ -69,6 +63,13 @@ export const employeeAPI = {
   getPublic: async (q) => {
     const url = q && q.trim() ? `/employees/public?q=${encodeURIComponent(q)}` : '/employees/public'
     const response = await api.get(url)
+    return response.data
+  },
+
+  // Public: get a single employee status by employeeId
+  getPublicStatus: async (employeeId, limit = 10) => {
+    const params = new URLSearchParams({ employeeId, limit: String(limit) })
+    const response = await api.get(`/attendance/employee/public-status?${params.toString()}`)
     return response.data
   },
 
@@ -132,14 +133,9 @@ export const visitorAPI = {
 
 // Attendance API functions
 export const attendanceAPI = {
-  // Employee clock in/out
-  employeeClock: async (action) => {
-    const response = await api.post('/attendance/employee/clock', { action })
-    return response.data
-  },
-  // Employee current status and recent history
-  employeeStatus: async (limit = 20) => {
-    const response = await api.get(`/attendance/employee/status?limit=${encodeURIComponent(limit)}`)
+  // Employee kiosk clock (no auth) using employeeId, action optional (toggles if omitted)
+  employeeKioskClock: async ({ employeeId, action }) => {
+    const response = await api.post('/attendance/employee/kiosk-clock', { employeeId, action })
     return response.data
   },
 
@@ -231,10 +227,6 @@ export const authAPI = {
     const response = await api.get('/auth/status/admin')
     return response.data
   },
-  getEmployeeStatus: async () => {
-    const response = await api.get('/auth/status/employee')
-    return response.data
-  },
   getVisitorStatus: async () => {
     const response = await api.get('/auth/status/visitor')
     return response.data
@@ -250,6 +242,18 @@ export const authAPI = {
   logout: async () => {
     // Backend defines logout as GET /auth/logout
     const response = await api.get('/auth/logout')
+    return response.data
+  }
+}
+
+// Settings API
+export const settingsAPI = {
+  getLateCutoff: async () => {
+    const response = await api.get('/settings/late-cutoff')
+    return response.data
+  },
+  setLateCutoff: async (lateCutoff) => {
+    const response = await api.post('/settings/late-cutoff', { lateCutoff })
     return response.data
   }
 }

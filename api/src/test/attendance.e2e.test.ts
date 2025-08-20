@@ -47,7 +47,6 @@ describe("Attendance E2E", () => {
   const adminEmail = `admin.${now}@example.com`;
   const password = "Password123!";
 
-  const empJar: Record<string, string> = {};
   const adminJar: Record<string, string> = {};
   let employeeId: string | undefined;
 
@@ -56,10 +55,9 @@ describe("Attendance E2E", () => {
     expect(r.ok).toBeTrue();
   });
 
-  it("registers an employee", async () => {
+  it("registers an employee (no password required)", async () => {
     const { res, data } = await http("POST", "/employees/register", {
       email: empEmail,
-      password,
       fullName: "Emp Test",
       employeeId: `E${now}`,
       department: "Ops",
@@ -67,25 +65,18 @@ describe("Attendance E2E", () => {
     });
     expect([200, 201]).toContain(res.status);
     expect(data?.success).toBeTrue();
+    // capture created employeeId for kiosk
+    const list = await http("GET", "/employees/public");
+    const emp = Array.isArray(list.data?.data) ? list.data.data.find((e: any) => e.sessionClientId?.email === empEmail) : undefined;
+    expect(emp).toBeDefined();
+    employeeId = emp?.employeeId;
+    expect(employeeId).toBeDefined();
   });
-
-  it("signs in employee", async () => {
-    const result = await http("POST", "/employees/sign", {
-      email: empEmail,
-      password,
-    });
-    expect(result.res.status).toBe(200);
-    expect(result.data?.success).toBeTrue();
-    // capture cookies
-    Object.assign(empJar, result.cookies);
-    employeeId = result.data?.data?._id;
-    expect(Object.keys(empJar).length).toBeGreaterThan(0);
-  });
-
-  it("employee clocks IN and OUT", async () => {
-    const r1 = await http("POST", "/attendance/employee/clock", { action: "IN" }, empJar);
+  it("employee kiosk clocks IN and OUT", async () => {
+    expect(employeeId).toBeDefined();
+    const r1 = await http("POST", "/attendance/employee/kiosk-clock", { employeeId, action: "IN" });
     expect([200, 201]).toContain(r1.res.status);
-    const r2 = await http("POST", "/attendance/employee/clock", { action: "OUT" }, empJar);
+    const r2 = await http("POST", "/attendance/employee/kiosk-clock", { employeeId, action: "OUT" });
     expect([200, 201]).toContain(r2.res.status);
   });
 

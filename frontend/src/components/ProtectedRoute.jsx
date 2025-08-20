@@ -15,7 +15,8 @@ export default function ProtectedRoute({ children, requireAuth = 'admin' }) {
         // Always verify with server first
         let status
         if (requireAuth === 'admin') status = await authAPI.getAdminStatus()
-        else if (requireAuth === 'employee') status = await authAPI.getEmployeeStatus()
+  // Employee auth removed; no server check for employee
+  else if (requireAuth === 'employee') status = { success: false, data: { isAuthenticated: false } }
         else if (requireAuth === 'visitor') status = await authAPI.getVisitorStatus()
 
         if (status?.success && status?.data?.isAuthenticated) {
@@ -89,8 +90,16 @@ export default function ProtectedRoute({ children, requireAuth = 'admin' }) {
 
   // Not authenticated - redirect to appropriate login
   if (!isAuthenticated) {
-    const loginPath = requireAuth === 'admin' ? '/admin/login' : `/${requireAuth}/login`
-    return <Navigate to={loginPath} state={{ from: location }} replace />
+    // Only admin and visitor are supported; employee flow redirects to kiosk
+    if (requireAuth === 'admin') {
+      return <Navigate to={'/admin/login'} state={{ from: location }} replace />
+    }
+    if (requireAuth === 'visitor') {
+      return <Navigate to={'/visitor/login'} state={{ from: location }} replace />
+    }
+    if (requireAuth === 'employee') {
+      return <Navigate to={'/employee'} replace />
+    }
   }
 
   // Authenticated - show protected content

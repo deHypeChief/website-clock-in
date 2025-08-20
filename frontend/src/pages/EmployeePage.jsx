@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { employeeAPI, attendanceAPI, authAPI } from '../lib/api'
+import { employeeAPI, attendanceAPI } from '../lib/api'
 
 export default function EmployeePage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -10,33 +10,14 @@ export default function EmployeePage() {
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
-  const [me, setMe] = useState(null) // logged-in employee profile
-  const [status, setStatus] = useState({ currentlyClockedIn: false, lastInAt: null, recentRecords: [] })
+  const [status, setStatus] = useState({ currentlyClockedIn: false, lastInAt: null })
+  // employee auth removed
 
-  // On mount: if logged in as employee (localStorage employeeAuth), fetch my status; else load employees for search mode
+  // On mount: load employees for search mode only
   useEffect(() => {
     const init = async () => {
       setLoading(true)
       try {
-        const authRaw = localStorage.getItem('employeeAuth')
-        if (authRaw) {
-          try {
-            JSON.parse(authRaw)
-            // Attempt to fetch status; if unauthorized, clear and fall back
-            const res = await attendanceAPI.employeeStatus(20)
-            if (res.success) {
-              setMe(res.data.employee)
-              setStatus({
-                currentlyClockedIn: !!res.data.currentlyClockedIn,
-                lastInAt: res.data.lastInAt || null,
-                recentRecords: res.data.recentRecords || []
-              })
-              return
-            }
-          } catch {
-            // fall through to public mode
-          }
-        }
         // Public search mode
         const response = await employeeAPI.getPublic()
         if (response.success && response.data) {
@@ -50,13 +31,12 @@ export default function EmployeePage() {
         console.error('Init failed:', error)
         setEmployees([])
         setFilteredEmployees([])
-        if (!me) setMessage({ type: 'error', text: 'Unable to load data. Please try again later.' })
+        setMessage({ type: 'error', text: 'Unable to load data. Please try again later.' })
       } finally {
         setLoading(false)
       }
     }
     init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -78,19 +58,30 @@ export default function EmployeePage() {
     }
   }, [searchTerm, employees])
 
-  const handleEmployeeSelect = (employee) => {
+  const handleEmployeeSelect = async (employee) => {
     setSelectedEmployee(employee)
+    // fetch status on select
+    try {
+      const s = await employeeAPI.getPublicStatus(employee.employeeId, 10)
+      if (s.success && s.data) {
+        setStatus({
+          currentlyClockedIn: !!s.data.currentlyClockedIn,
+          lastInAt: s.data.lastInAt ? new Date(s.data.lastInAt) : null
+        })
+      }
+    } catch {
+      // ignore status fetch errors on selection
+    }
   }
 
   const refreshStatus = async () => {
     try {
-      const r = await attendanceAPI.employeeStatus(20)
-      if (r.success) {
-        setMe(r.data.employee)
+      if (!selectedEmployee?.employeeId) return
+      const s = await employeeAPI.getPublicStatus(selectedEmployee.employeeId, 10)
+      if (s.success && s.data) {
         setStatus({
-          currentlyClockedIn: !!r.data.currentlyClockedIn,
-          lastInAt: r.data.lastInAt || null,
-          recentRecords: r.data.recentRecords || []
+          currentlyClockedIn: !!s.data.currentlyClockedIn,
+          lastInAt: s.data.lastInAt ? new Date(s.data.lastInAt) : null
         })
       }
     } catch {
@@ -98,84 +89,31 @@ export default function EmployeePage() {
     }
   }
 
-  const handleLogout = async () => {
-    setLoading(true)
-    try {
-      await authAPI.logout()
-  } catch {
-      // ignore
-    } finally {
-      localStorage.removeItem('employeeAuth')
-      setLoading(false)
-      window.location.href = '/employee/login'
-    }
-  }
+  // employee auth removed
 
   const handleClockAction = async (action) => {
-    // In self mode, we don't need selectedEmployee; in search mode ensure selection
-    if (!me && !selectedEmployee) return
-
+    if (!selectedEmployee) return
     setLoading(true)
     setMessage({ type: '', text: '' })
-
     try {
-      // Perform the clock action using the current employee session
-      const clockResponse = await attendanceAPI.employeeClock(action)
-      
-      if (clockResponse.success) {
-        const employeeName = me?.sessionClientId?.fullName || selectedEmployee?.sessionClientId?.fullName || 'Employee'
-        setMessage({
-          type: 'success',
-          text: `Successfully clocked ${(action || '').toLowerCase()} for ${employeeName} at ${new Date().toLocaleTimeString()}`
-        })
+      const resp = await attendanceAPI.employeeKioskClock({ employeeId: selectedEmployee.employeeId, action })
+      if (resp.success) {
+        const employeeName = selectedEmployee?.sessionClientId?.fullName || 'Employee'
+        setMessage({ type: 'success', text: `Successfully clocked ${(action || '').toLowerCase()} for ${employeeName} at ${new Date().toLocaleTimeString()}` })
         await refreshStatus()
-        // In search mode, clear selection
-        if (!me) {
-          setTimeout(() => {
-            setSelectedEmployee(null)
-            setSearchTerm('')
-            setMessage({ type: '', text: '' })
-          }, 3000)
-        }
       } else {
-        throw new Error(clockResponse.message || 'Clock action failed')
+        throw new Error(resp.message || 'Clock action failed')
       }
-      
     } catch (error) {
       console.error('Clock action failed:', error)
-      setMessage({
-        type: 'error',
-        text: 'Clock action failed. Please try again.'
-      })
+      const errMsg = error?.response?.data?.message || error?.message || 'Clock action failed. Please try again.'
+      setMessage({ type: 'error', text: errMsg })
     } finally {
       setLoading(false)
     }
   }
 
-  const SelfHeader = () => (
-    <div className="mb-6 sm:mb-8">
-      <Link 
-        to="/" 
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Home
-      </Link>
-    <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">My Attendance</h1>
-      <p className="text-gray-600 text-sm sm:text-base">View your info, recent clock activity, and quickly clock in or out.</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          disabled={loading}
-          className={`px-4 py-2 rounded-lg text-white ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
-        >
-          {loading ? 'Signing out...' : 'Logout'}
-        </button>
-      </div>
-    </div>
-  )
+  // SelfHeader removed
 
   const PublicHeader = () => (
     <div className="mb-6 sm:mb-8">
@@ -198,78 +136,13 @@ export default function EmployeePage() {
   return (
     <div className="max-w-4xl mx-auto px-4">
       {/* Header */}
-      {me ? <SelfHeader /> : <PublicHeader />}
+  <PublicHeader />
 
       {/* Self mode: show profile and quick actions */}
-      {me && (
-        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
-                {me?.sessionClientId?.fullName || 'Employee'}
-              </h2>
-              <p className="text-gray-600 text-sm">{me?.employeeId} • {me?.department} • {me?.title}</p>
-            </div>
-            <div className="text-sm">
-              {status.currentlyClockedIn ? (
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800">Currently In</span>
-              ) : (
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700">Not Clocked In</span>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <button
-              onClick={() => handleClockAction('IN')}
-              disabled={loading || status.currentlyClockedIn}
-              className={`flex items-center justify-center space-x-2 py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors text-white ${
-                loading || status.currentlyClockedIn ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span>{loading ? 'Processing...' : 'Clock In'}</span>
-            </button>
-            <button
-              onClick={() => handleClockAction('OUT')}
-              disabled={loading || !status.currentlyClockedIn}
-              className={`flex items-center justify-center space-x-2 py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors text-white ${
-                loading || !status.currentlyClockedIn ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-              }`}
-            >
-              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span>{loading ? 'Processing...' : 'Clock Out'}</span>
-            </button>
-          </div>
-
-          {/* Recent history */}
-          <div className="mt-6 sm:mt-8">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Recent Activity</h3>
-            {status.recentRecords && status.recentRecords.length > 0 ? (
-              <div className="bg-gray-50 rounded-lg divide-y">
-                {status.recentRecords.slice(0, 10).map((r) => (
-                  <div key={r._id || r.timestamp} className="flex items-center justify-between p-3">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-full ${r.action === 'IN' ? 'bg-green-100' : 'bg-red-100'}`}>
-                        <Clock className={`${r.action === 'IN' ? 'text-green-600' : 'text-red-600'} h-4 w-4`} />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">Clock {r.action}</div>
-                        <div className="text-xs text-gray-500">{new Date(r.timestamp).toLocaleString()}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">No recent attendance records.</p>
-            )}
-          </div>
-        </div>
-      )}
+  {/* self mode removed */}
 
       {/* Public search Section (only when not logged in) */}
-      {!me && (
+  {
       <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -324,10 +197,10 @@ export default function EmployeePage() {
           </div>
         )}
       </div>
-      )}
+  }
 
       {/* Selected Employee */}
-  {!me && selectedEmployee && (
+  {selectedEmployee && (
         <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 mb-6 sm:mb-8">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-5 sm:mb-6">
             <div>
@@ -365,20 +238,29 @@ export default function EmployeePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <button
               onClick={() => handleClockAction('IN')}
-              disabled={loading}
+              disabled={loading || status.currentlyClockedIn}
               className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors"
             >
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span>{loading ? 'Processing...' : 'Clock In'}</span>
+              <span>{loading ? 'Processing...' : status.currentlyClockedIn ? 'Already Clocked In' : 'Clock In'}</span>
             </button>
             <button
               onClick={() => handleClockAction('OUT')}
-              disabled={loading}
+              disabled={loading || !status.currentlyClockedIn}
               className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-3 sm:py-4 px-5 sm:px-6 rounded-lg text-base sm:text-lg font-semibold transition-colors"
             >
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span>{loading ? 'Processing...' : 'Clock Out'}</span>
+              <span>{loading ? 'Processing...' : !status.currentlyClockedIn ? 'Not Clocked In' : 'Clock Out'}</span>
             </button>
+          </div>
+
+          {/* Live status */}
+          <div className="mt-3 text-center text-xs sm:text-sm text-gray-600">
+            {status.currentlyClockedIn ? (
+              <span>Currently IN{status.lastInAt ? ` since ${new Date(status.lastInAt).toLocaleTimeString()}` : ''}</span>
+            ) : (
+              <span>Currently OUT</span>
+            )}
           </div>
 
           <div className="mt-4 text-center text-xs sm:text-sm text-gray-500">
@@ -387,7 +269,7 @@ export default function EmployeePage() {
         </div>
       )}
 
-      {/* Success/Error Messages */}
+  {/* Success/Error Messages */}
       {message.text && (
         <div className={`rounded-lg p-4 mb-6 sm:mb-8 ${
           message.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
@@ -410,21 +292,16 @@ export default function EmployeePage() {
       {/* Instructions */}
       <div className="bg-blue-50 rounded-xl p-5 sm:p-6 border border-blue-200">
         <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-2 sm:mb-3">
-          {me ? 'Tips' : 'How to Use'}
+          {'How to Use'}
         </h3>
-        {me ? (
-          <ul className="list-disc list-inside space-y-2 text-blue-800 text-sm">
-            <li>If you’re already clocked in, the Clock Out button will be enabled for a quick checkout.</li>
-            <li>Use the Back button to navigate home. Your session stays active unless you log out.</li>
-          </ul>
-        ) : (
+  {
           <ol className="list-decimal list-inside space-y-2 text-blue-800 text-sm">
             <li>Search for your name in the search box above</li>
             <li>Click on your name from the search results</li>
             <li>Click "Clock In" when you arrive or "Clock Out" when you leave</li>
             <li>Your attendance will be automatically recorded with the current timestamp</li>
           </ol>
-        )}
+  }
       </div>
     </div>
   )

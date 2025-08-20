@@ -1,8 +1,18 @@
 import { t } from 'elysia'
 
 export const AttendanceValidator = {
-    employeeClock: {
-        body: t.Object({ action: t.Enum({ IN: 'IN', OUT: 'OUT' }) }),
+    employeeKioskClock: {
+        body: t.Object({
+            employeeId: t.String(),
+            action: t.Optional(t.Enum({ IN: 'IN', OUT: 'OUT' }))
+        }),
+        detail: { tags: ['Attendance'] }
+    },
+    employeePublicStatus: {
+        query: t.Object({
+            employeeId: t.String(),
+            limit: t.Optional(t.Number())
+        }),
         detail: { tags: ['Attendance'] }
     },
     visitorClock: {
@@ -23,3 +33,4 @@ export const AttendanceValidator = {
         detail: { tags: ['Attendance'] }
     }
 }
+ 

@@ -16,15 +16,8 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/employee" element={<EmployeePage />} />
           <Route path="/employee/login" element={<EmployeeLogin />} />
-          <Route 
-            path="/employee" 
-            element={
-              <ProtectedRoute requireAuth="employee">
-                <EmployeePage />
-              </ProtectedRoute>
-            } 
-          />
           <Route path="/visitor" element={<VisitorPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/register" element={<AdminRegister />} />

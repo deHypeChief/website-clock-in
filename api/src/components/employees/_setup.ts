@@ -6,7 +6,7 @@ export const EmployeeValidator = {
             profile: t.Optional(t.String()),
             fullName: t.String({ minLength: 3 }),
             email: t.String({ format: 'email' }),
-            password: t.String({ minLength: 8 }),
+            password: t.Optional(t.String({ minLength: 8 })),
             employeeId: t.String({ minLength: 2 }),
             department: t.Optional(t.String()),
             title: t.Optional(t.String()),

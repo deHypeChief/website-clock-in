@@ -36,11 +36,10 @@ export default function HomePage() {
                         </div>
                     </div>
                     <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 text-center mb-2 sm:mb-3">
-                        Employee Clock In
+                        Employee Kiosk
                     </h2>
                     <p className="text-gray-600 text-center mb-3 sm:mb-4 text-sm sm:text-base">
-                        Access your employee portal to clock in/out and track attendance.
-                        Secure login required.
+                        Search your name and clock in/out quickly.
                     </p>
                     <div className="text-center space-y-2">
                         <div className="inline-flex items-center text-green-600 font-medium group-hover:text-green-700">
@@ -49,7 +48,6 @@ export default function HomePage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
-                        <div className="text-xs text-gray-500">Login required</div>
                     </div>
                 </Link>
 
@@ -89,11 +87,11 @@ export default function HomePage() {
                 </h2>
                 <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                     <Link
-                        to="/employee/login"
+                        to="/employee"
                         className="inline-flex items-center w-full sm:w-auto justify-center px-5 sm:px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
                     >
                         <Users className="h-5 w-5 mr-2" />
-                        Employee Login
+                        Employee Kiosk
                     </Link>
                     <Link
                         to="/admin/login"

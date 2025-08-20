@@ -15,7 +15,7 @@ import {
   Save
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { employeeAPI, attendanceAPI, authAPI } from '../lib/api'
+import { employeeAPI, attendanceAPI, authAPI, settingsAPI } from '../lib/api'
 
 export default function AdminPage() {
   const navigate = useNavigate()
@@ -33,13 +33,14 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [lateCutoff, setLateCutoff] = useState('09:00')
+  const [savingLate, setSavingLate] = useState(false)
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     email: '',
     employeeId: '',
     department: '',
-    title: '',
-    password: ''
+  title: ''
   })
 
   // Pagination state
@@ -84,6 +85,12 @@ export default function AdminPage() {
     const loadData = async () => {
       setIsLoading(true)
       try {
+        // Load settings
+  try {
+          const s = await settingsAPI.getLateCutoff()
+          if (s?.success && s?.data?.lateCutoff) setLateCutoff(s.data.lateCutoff)
+  } catch { /* ignore settings load error */ }
+
         // Load employees
         const employeesResponse = await employeeAPI.getAll()
         if (employeesResponse.success && employeesResponse.data) {
@@ -160,6 +167,37 @@ export default function AdminPage() {
       setTimeout(() => setMessage({ type: '', text: '' }), 5000)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const saveLateCutoff = async () => {
+    setSavingLate(true)
+    try {
+      const r = await settingsAPI.setLateCutoff(lateCutoff)
+      if (r.success) {
+        setMessage({ type: 'success', text: 'Late time saved' })
+        setTimeout(() => setMessage({ type: '', text: '' }), 2000)
+      } else {
+        throw new Error(r.message || 'Failed to save late time')
+      }
+  } catch {
+      setMessage({ type: 'error', text: 'Failed to save late time' })
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+    } finally {
+      setSavingLate(false)
+    }
+  }
+
+  const isLateClockIn = (record) => {
+    try {
+      if (record?.actorType !== 'employee' || record?.action !== 'IN') return false
+      const ts = new Date(record.timestamp)
+      const hh = String(ts.getHours()).padStart(2, '0')
+      const mm = String(ts.getMinutes()).padStart(2, '0')
+      const hhmm = `${hh}:${mm}`
+      return hhmm > lateCutoff
+    } catch {
+      return false
     }
   }
 
@@ -323,8 +361,7 @@ export default function AdminPage() {
       email: '',
       employeeId: '',
       department: '',
-      title: '',
-      password: ''
+  title: ''
     })
   }
 
@@ -362,29 +399,15 @@ export default function AdminPage() {
         return
       }
 
-      // Validate password if provided: at least 8 chars, at least 1 upper, 1 lower, 1 number, 1 special
-      if (newEmployee.password && newEmployee.password.trim().length > 0) {
-        const pwd = newEmployee.password.trim()
-        const lengthOk = pwd.length >= 8
-        const compositionOk = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(pwd)
-        if (!lengthOk || !compositionOk) {
-          setMessage({
-            type: 'error',
-            text: 'Password must be at least 8 characters and include at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
-          })
-          setTimeout(() => setMessage({ type: '', text: '' }), 4000)
-          return
-        }
-      }
+  // No password required
 
       // Generate employee ID if not provided
       const employeeId = newEmployee.employeeId || `EMP${Date.now().toString().slice(-6)}`
 
   // Create employee payload (flat fields as expected by API)
-      const employeePayload = {
+  const employeePayload = {
         fullName: newEmployee.name,
         email: newEmployee.email,
-        password: newEmployee.password || 'defaultPassword123',
         employeeId: employeeId,
         department: newEmployee.department || 'General',
         title: newEmployee.title || 'Employee'
@@ -429,8 +452,7 @@ export default function AdminPage() {
       email: employee?.sessionClientId?.email || '',
       employeeId: employee?.employeeId || '',
       department: employee?.department || '',
-      title: employee?.title || '',
-      password: ''
+  title: employee?.title || ''
     })
     setShowEditEmployeeModal(true)
   }
@@ -561,8 +583,7 @@ export default function AdminPage() {
       email: '',
       employeeId: '',
       department: '',
-      title: '',
-      password: ''
+  title: ''
     })
   }
 
@@ -963,6 +984,18 @@ export default function AdminPage() {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-auto"
                 />
               </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <label className="text-sm text-gray-700">Late time:</label>
+                <input
+                  type="time"
+                  value={lateCutoff}
+                  onChange={(e) => setLateCutoff(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button onClick={saveLateCutoff} disabled={savingLate} className={`px-3 py-2 rounded-lg text-white ${savingLate ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  {savingLate ? 'Saving…' : 'Save'}
+                </button>
+              </div>
             </div>
             <button 
               onClick={exportAttendanceData}
@@ -1001,7 +1034,7 @@ export default function AdminPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {attendancePageData.map((record) => (
-                  <tr key={record._id} className="hover:bg-gray-50">
+                  <tr key={record._id} className={`hover:bg-gray-50 ${isLateClockIn(record) ? 'bg-red-50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {record.actorType === 'employee' 
                         ? record?.actorId?.sessionClientId?.fullName || 'Unknown Employee'
@@ -1020,7 +1053,7 @@ export default function AdminPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         record.action === 'IN'
-                          ? 'bg-green-100 text-green-800'
+                          ? (isLateClockIn(record) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800')
                           : 'bg-red-100 text-red-800'
                       }`}>
                         Clock {record.action}
@@ -1270,27 +1303,7 @@ export default function AdminPage() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={newEmployee.password}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    minLength={8}
-                    placeholder="Leave blank for default password"
-                  />
-
-                  <p className="text-xs text-gray-500 mt-1">
-                    at least 8 characters, at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
-                    <br />
-                    <strong>Note:</strong>
-                    If left blank, default password will be: defaultPassword123
-                  </p>
-                </div>
+                {/* Password no longer required when creating employees */}
               </div>
               
               <div className="flex items-center justify-end space-x-4 mt-6 pt-6 border-t border-gray-200">

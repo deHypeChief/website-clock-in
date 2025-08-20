@@ -7,7 +7,7 @@ import { EmployeeValidator } from "../_setup";
 
 const registerEmployee = new Elysia()
     .post("/register", async ({ set, body }) => {
-        const { email, password, fullName, profile, employeeId, department, title } = body as any;
+    const { email, password, fullName, profile, employeeId, department, title } = body as any;
 
         try {
             const checkEmail = await SessionClient.findOne({ email })
@@ -15,13 +15,16 @@ const registerEmployee = new Elysia()
                 return ErrorHandler.ValidationError(set, "The email provided is already in use.")
             }
 
-            const newClient = await SessionClient.create({
+            const clientPayload: any = {
                 email,
-                password,
                 fullName,
                 role: ["employee"],
                 profile
-            })
+            }
+            if (password && String(password).trim().length > 0) {
+                clientPayload.password = password
+            }
+            const newClient = await SessionClient.create(clientPayload)
 
             if (!newClient) {
                 return ErrorHandler.ServerError(

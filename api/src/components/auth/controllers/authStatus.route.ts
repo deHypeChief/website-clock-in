@@ -4,9 +4,7 @@ import ErrorHandler from "../../../services/errorHandler.service";
 import SuccessHandler from "../../../services/successHandler.service";
 import { Admin } from "../../admin/_model";
 import { AdminValidator } from "../../admin/_setup";
-import { EmployeeValidator } from "../../employees/_setup";
 import { VisitorValidator } from "../../visitors/_setup";
-import { Employee } from "../../employees/_model";
 import { Visitor } from "../../visitors/_model";
 
 const adminAuthStatus = new Elysia()
@@ -26,22 +24,7 @@ const adminAuthStatus = new Elysia()
         }
     }, AdminValidator.authStatus)
 
-const employeeAuthStatus = new Elysia()
-    .use(isSessionAuth("employee"))
-    .get("/status/employee", async ({ set, session }) => {
-        try {
-            const employeeSessionClient = await Employee.findOne({ sessionClientId: session._id })
-                .select("-password");
-
-            return SuccessHandler(set, "Employee Authenticated", {
-                isAuthenticated: true,
-                session,
-                employee: employeeSessionClient
-            }, true);
-        } catch (error) {
-            throw ErrorHandler.ServerError(set, "Error getting employee status", error);
-        }
-    }, EmployeeValidator.authStatus)
+// Employee auth removed; no /status/employee
 
 const visitorAuthStatus = new Elysia()
     .use(isSessionAuth("visitor"))
@@ -60,4 +43,4 @@ const visitorAuthStatus = new Elysia()
         }
     }, VisitorValidator.authStatus)
 
-export { adminAuthStatus, employeeAuthStatus, visitorAuthStatus };
+export { adminAuthStatus, visitorAuthStatus };
