@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { UserPlus, Mail, Eye, EyeOff, ArrowLeft, Shield, AlertCircle, CheckCircle } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { adminAPI } from '../lib/api'
@@ -14,10 +14,29 @@ export default function AdminRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [disabled, setDisabled] = useState(false)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    let ignore = false
+    const checkExists = async () => {
+      try {
+        const res = await adminAPI.exists()
+        if (!ignore && res?.success && res?.data?.exists) {
+          setDisabled(true)
+          setMessage({ type: 'error', text: 'An admin already exists. Registration is disabled.' })
+        }
+  } catch {
+        // If the endpoint is unavailable, do not block the user silently
+      }
+    }
+    checkExists()
+    return () => { ignore = true }
+  }, [])
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
+  e.preventDefault()
+  if (disabled) return
     setLoading(true)
     setMessage({ type: '', text: '' })
 
@@ -128,10 +147,10 @@ export default function AdminRegister() {
             <UserPlus className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
-            Create Admin Account
+            {disabled ? 'Admin Registration Disabled' : 'Create Admin Account'}
           </h1>
           <p className="text-gray-600 text-sm sm:text-base">
-            Set up your admin account to manage the attendance system.
+            {disabled ? 'An admin already exists. Please sign in.' : 'Set up your admin account to manage the attendance system.'}
           </p>
         </div>
       </div>
@@ -171,6 +190,7 @@ export default function AdminRegister() {
                 id="name"
                 name="name"
                 required
+                disabled={disabled}
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
@@ -191,6 +211,7 @@ export default function AdminRegister() {
                 id="email"
                 name="email"
                 required
+                disabled={disabled}
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
@@ -211,6 +232,7 @@ export default function AdminRegister() {
                 id="password"
                 name="password"
                 required
+                disabled={disabled}
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
@@ -245,6 +267,7 @@ export default function AdminRegister() {
                 id="confirmPassword"
                 name="confirmPassword"
                 required
+                disabled={disabled}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
@@ -267,10 +290,10 @@ export default function AdminRegister() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || disabled}
             className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
-              loading 
-                ? 'bg-gray-400 cursor-not-allowed' 
+              loading || disabled
+                ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
             } text-white`}
           >
@@ -282,7 +305,7 @@ export default function AdminRegister() {
             ) : (
               <>
                 <UserPlus className="h-4 w-4" />
-                <span>Create Admin Account</span>
+                <span>{disabled ? 'Disabled' : 'Create Admin Account'}</span>
               </>
             )}
           </button>

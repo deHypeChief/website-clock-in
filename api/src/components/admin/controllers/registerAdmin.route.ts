@@ -15,6 +15,12 @@ const registerAdmin = new Elysia()
             if (!validRoles.includes(role)) {
                 return ErrorHandler.ValidationError(set, "Invalid role provided");
             }
+            // Block creating another admin if an admin already exists
+            const existingAdminCount = await Admin.countDocuments({ adminTitle: /ADMIN/i })
+            if (role === 'admin' && existingAdminCount > 0) {
+                return ErrorHandler.ValidationError(set, "An admin account already exists. Registration disabled.")
+            }
+
             const checkEmail = await SessionClient.findOne({ email })
             if (checkEmail) {
                 return ErrorHandler.ValidationError(set, "The email provided is already in use.")

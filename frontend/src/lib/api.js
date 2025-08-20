@@ -205,6 +205,12 @@ export const adminAPI = {
     return response.data
   },
 
+  // Check if an admin already exists
+  exists: async () => {
+    const response = await api.get('/admins/exists')
+    return response.data
+  },
+
   // Password reset
   passwordReset: async (email) => {
     const response = await api.post('/admins/password-reset', { email })
