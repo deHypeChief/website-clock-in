@@ -1249,7 +1249,7 @@ export default function AdminPage() {
                   />
                 </div>
                 
-                {/* <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Employee ID
                   </label>
@@ -1264,7 +1264,7 @@ export default function AdminPage() {
                   <p className="text-xs text-gray-500 mt-1">
                     Leave blank to auto-generate an Employee ID
                   </p>
-                </div> */}
+                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
