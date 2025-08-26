@@ -11,7 +11,7 @@ export default function HomePage() {
             {/* Hero Section */}
             <div className="text-center mb-10 sm:mb-12">
                 <div className="flex justify-center mb-5 sm:mb-6">
-                    <img src='/Logo.svg' className='size-28 sm:size-36 md:size-40' />
+                    <img src='/logo.png' className='w-28 sm:w-36 md:w-40' />
 
                 </div>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl leading-tight font-bold text-gray-900 mb-3 sm:mb-4">
